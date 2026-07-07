@@ -21,9 +21,12 @@ Use this repository URL in Dockge:
 https://github.com/mschoettli/holidaycheck.git
 ```
 
-Set users in Dockge's stack environment. User 1 is required:
+Create a separate `.env` file for the stack. User 1 is required:
 
 ```env
+HOLIDAYCHECK_PORT=3000
+SESSION_TTL_SECONDS=86400
+
 HOLIDAYCHECK_USER_1_EMAIL=demo@holiday.test
 HOLIDAYCHECK_USER_1_PASSWORD=holiday
 
@@ -33,7 +36,7 @@ HOLIDAYCHECK_USER_2_PASSWORD=change-me
 
 ## Users
 
-Users are configured only through environment variables. Use `.env` locally or Dockge's environment editor on your server:
+Users are configured only through the separate `.env` file referenced by `env_file` in `docker-compose.yml`:
 
 ```env
 HOLIDAYCHECK_USER_1_EMAIL=demo@holiday.test
@@ -43,7 +46,7 @@ HOLIDAYCHECK_USER_2_EMAIL=admin@example.com
 HOLIDAYCHECK_USER_2_PASSWORD=change-me
 ```
 
-The app reads `HOLIDAYCHECK_USER_1_EMAIL` / `HOLIDAYCHECK_USER_1_PASSWORD` through `HOLIDAYCHECK_USER_5_EMAIL` / `HOLIDAYCHECK_USER_5_PASSWORD`. User 1 is required. For production, replace the demo passwords before starting the container.
+The app reads `HOLIDAYCHECK_USER_1_EMAIL` / `HOLIDAYCHECK_USER_1_PASSWORD` through `HOLIDAYCHECK_USER_5_EMAIL` / `HOLIDAYCHECK_USER_5_PASSWORD`. User 1 is required. For production, replace the demo passwords before starting the container. Do not commit your real `.env`.
 
 ## Local Run Without Docker
 
