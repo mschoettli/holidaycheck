@@ -7,6 +7,7 @@ Bilingual holiday and shopping checklist app with Docker-based user management.
 ```bash
 git clone <your-github-repo-url>
 cd holidaycheck
+cp .env.example .env
 docker compose up --build
 ```
 
@@ -14,11 +15,10 @@ Open `http://localhost:3000`.
 
 ## Users
 
-Users are configured directly in `docker-compose.yml`:
+Users are configured in `.env`:
 
-```yaml
-environment:
-  HOLIDAYCHECK_USERS: "demo@holiday.test:holiday,admin@example.com:change-me"
+```env
+HOLIDAYCHECK_USERS=demo@holiday.test:holiday,admin@example.com:change-me
 ```
 
 Format: `email:password,email2:password2`.
