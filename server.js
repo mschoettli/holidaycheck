@@ -15,26 +15,26 @@ function parseUsers() {
   const users = new Map();
 
   Object.keys(process.env)
-    .filter((key) => /^HOLIDAYCHECK_USER_\d+_EMAIL$/.test(key))
+    .filter((key) => /^HOLIDAYCHECK_USER_\d+_NAME$/.test(key))
     .sort((left, right) => {
       const leftNumber = Number(left.match(/\d+/)[0]);
       const rightNumber = Number(right.match(/\d+/)[0]);
       return leftNumber - rightNumber;
     })
-    .forEach((emailKey) => {
-      const userNumber = emailKey.match(/\d+/)[0];
+    .forEach((nameKey) => {
+      const userNumber = nameKey.match(/\d+/)[0];
       const passwordKey = `HOLIDAYCHECK_USER_${userNumber}_PASSWORD`;
-      const email = String(process.env[emailKey] || "").trim().toLowerCase();
+      const username = String(process.env[nameKey] || "").trim().toLowerCase();
       const password = String(process.env[passwordKey] || "");
 
-      if (email && password) {
-        users.set(email, password);
+      if (username && password) {
+        users.set(username, password);
       }
     });
 
   if (!users.size) {
     throw new Error(
-      "No holidaycheck users configured. Set HOLIDAYCHECK_USER_1_EMAIL and HOLIDAYCHECK_USER_1_PASSWORD in the environment."
+      "No holidaycheck users configured. Set HOLIDAYCHECK_USER_1_NAME and HOLIDAYCHECK_USER_1_PASSWORD in the environment."
     );
   }
 
@@ -88,10 +88,10 @@ function parseCookies(req) {
   );
 }
 
-function createSession(email) {
+function createSession(username) {
   const token = crypto.randomBytes(32).toString("hex");
   sessions.set(token, {
-    email,
+    username,
     expiresAt: Date.now() + SESSION_TTL_MS
   });
   return token;
@@ -167,23 +167,23 @@ async function handleApi(req, res) {
 
   if (req.method === "GET" && req.url === "/api/session") {
     const session = getSession(req);
-    sendJson(res, session ? 200 : 401, session ? { ok: true, email: session.email } : { ok: false });
+    sendJson(res, session ? 200 : 401, session ? { ok: true, username: session.username } : { ok: false });
     return;
   }
 
   if (req.method === "POST" && req.url === "/api/login") {
     try {
       const payload = await readJson(req);
-      const email = String(payload.email || "").trim().toLowerCase();
+      const username = String(payload.username || "").trim().toLowerCase();
       const password = String(payload.password || "");
-      const expectedPassword = users.get(email);
+      const expectedPassword = users.get(username);
 
       if (!expectedPassword || !timingSafeEqualText(password, expectedPassword)) {
         sendJson(res, 401, { ok: false });
         return;
       }
 
-      const token = createSession(email);
+      const token = createSession(username);
       sendJson(res, 200, { ok: true }, {
         "Set-Cookie": `${SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`
       });

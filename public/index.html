@@ -914,8 +914,8 @@
             <p data-i18n="loginIntro">Plan trips, purchases and packing lists in one calm overview.</p>
           </div>
           <div class="field">
-            <label for="email" data-i18n="emailLabel">Email</label>
-            <input id="email" type="email" value="demo@holiday.test" autocomplete="email" />
+            <label for="username" data-i18n="usernameLabel">Username</label>
+            <input id="username" type="text" value="demo" autocomplete="username" />
           </div>
           <div class="field">
             <label for="password" data-i18n="passwordLabel">Password</label>
@@ -1077,10 +1077,10 @@
           appSubtitle: "Ferien- und Einkaufscheckliste",
           loginTitle: "Login",
           loginIntro: "Plane Ferienorte, Einkäufe und Packlisten in einer ruhigen Übersicht.",
-          emailLabel: "E-Mail",
+          usernameLabel: "Benutzername",
           passwordLabel: "Passwort",
           loginButton: "Einloggen",
-          loginError: "Login fehlgeschlagen. Prüfe E-Mail und Passwort.",
+          loginError: "Login fehlgeschlagen. Prüfe Benutzername und Passwort.",
           resetButton: "Demo zurücksetzen",
           dashboardTitle: "Ferienorte",
           dashboardText: "Wähle einen Ferienort und behalte offene Punkte oben.",
@@ -1115,10 +1115,10 @@
           appSubtitle: "Holiday and shopping checklist",
           loginTitle: "Login",
           loginIntro: "Plan destinations, shopping and packing lists in one calm overview.",
-          emailLabel: "Email",
+          usernameLabel: "Username",
           passwordLabel: "Password",
           loginButton: "Sign in",
-          loginError: "Login failed. Check email and password.",
+          loginError: "Login failed. Check username and password.",
           resetButton: "Reset demo",
           dashboardTitle: "Trips",
           dashboardText: "Choose a destination and keep unfinished items at the top.",
@@ -1533,7 +1533,7 @@
             headers: { "Content-Type": "application/json" },
             credentials: "same-origin",
             body: JSON.stringify({
-              email: $("#email").value.trim(),
+              username: $("#username").value.trim(),
               password: $("#password").value
             })
           });
