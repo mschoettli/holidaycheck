@@ -36,11 +36,12 @@ services:
       WATCHTOWER_SCHEDULE: "${WATCHTOWER_SCHEDULE:-0 0 4 * * *}"
       WATCHTOWER_HTTP_API_UPDATE: "true"
       WATCHTOWER_HTTP_API_TOKEN: "${WATCHTOWER_HTTP_API_TOKEN:-holidaycheck-update-token}"
+      DOCKER_API_VERSION: "${DOCKER_API_VERSION:-1.44}"
     labels:
       com.centurylinklabs.watchtower.enable: "true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
+    restart: on-failure:3
 
 volumes:
   holidaycheck_data:

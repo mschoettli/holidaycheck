@@ -46,6 +46,7 @@ HOLIDAYCHECK_LANGUAGE=de
 TZ=Europe/Zurich
 WATCHTOWER_SCHEDULE=0 0 4 * * *
 WATCHTOWER_HTTP_API_TOKEN=holidaycheck-update-token
+DOCKER_API_VERSION=1.44
 
 HOLIDAYCHECK_USER_1_NAME=admin
 HOLIDAYCHECK_USER_1_PASSWORD=change-this-password
@@ -85,6 +86,8 @@ Allowed values are `de` and `en`. The language switch is intentionally not shown
 The compose stack includes Watchtower with label mode enabled. It checks for updates every day at 04:00 by default and cleans old images after updating.
 
 The update icon in the app checks the current commit against GitHub `main`. If an update is available, a red dot appears. Clicking `Update laden` calls the internal Watchtower HTTP API with `WATCHTOWER_HTTP_API_TOKEN`.
+
+If Watchtower logs `client version 1.25 is too old`, keep `DOCKER_API_VERSION=1.44` in the stack `.env`. The Watchtower service is limited to three failed restarts so it does not loop endlessly if Docker rejects the API version.
 
 Watchtower updates registry images, not raw Git build contexts. This repository therefore includes a GitHub Actions workflow that publishes:
 
