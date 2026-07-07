@@ -36,17 +36,22 @@ function parseUsers() {
     }
   });
 
-  if (!users.size) {
-    throw new Error(
-      "No holidaycheck users configured. Set HOLIDAYCHECK_USER_1_NAME and HOLIDAYCHECK_USER_1_PASSWORD in your separate .env file. Legacy HOLIDAYCHECK_USER_1_EMAIL is also accepted as a username."
-    );
-  }
-
   return users;
 }
 
 const users = parseUsers();
-console.log(`holidaycheck configured ${users.size} user${users.size === 1 ? "" : "s"}`);
+const hasConfiguredUsers = users.size > 0;
+const missingUsersMessage =
+  "No holidaycheck users configured. Set HOLIDAYCHECK_USER_1_NAME and HOLIDAYCHECK_USER_1_PASSWORD in your separate .env file.";
+const buildRevision = process.env.HOLIDAYCHECK_BUILD_REVISION || "local";
+
+if (hasConfiguredUsers) {
+  console.log(`holidaycheck ${buildRevision} configured ${users.size} user${users.size === 1 ? "" : "s"}`);
+} else {
+  console.warn(
+    `holidaycheck ${buildRevision}: ${missingUsersMessage} Legacy HOLIDAYCHECK_USER_1_EMAIL is also accepted as a username.`
+  );
+}
 
 function sendJson(res, statusCode, payload, headers = {}) {
   res.writeHead(statusCode, {
@@ -210,7 +215,7 @@ function serveStatic(req, res) {
 
 async function handleApi(req, res) {
   if (req.method === "GET" && req.url === "/health") {
-    sendJson(res, 200, { ok: true });
+    sendJson(res, 200, { ok: true, usersConfigured: hasConfiguredUsers });
     return;
   }
 
@@ -253,6 +258,11 @@ async function handleApi(req, res) {
 
   if (req.method === "POST" && req.url === "/api/login") {
     try {
+      if (!hasConfiguredUsers) {
+        sendJson(res, 503, { ok: false, message: missingUsersMessage });
+        return;
+      }
+
       const payload = await readJson(req);
       const username = String(payload.username || "").trim().toLowerCase();
       const password = String(payload.password || "");

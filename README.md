@@ -68,7 +68,9 @@ Legacy `HOLIDAYCHECK_USER_1_EMAIL` style variables are still accepted as usernam
 
 ## Dockge Troubleshooting
 
-If Dockge logs still say `Set HOLIDAYCHECK_USER_1_EMAIL`, the running image is old. Pull the latest repository state in Dockge and force a rebuild of the stack. If it still repeats, remove the old `holidaycheck` container/image in Dockge and deploy again so the GitHub build context is fetched fresh.
+If Dockge logs still say `Set HOLIDAYCHECK_USER_1_EMAIL`, the running image is old. Pull the latest repository state in Dockge and force a rebuild/recreate of the stack. The current container logs start with `holidaycheck dockge-github-main`. If the old message repeats, remove the old `holidaycheck` container/image in Dockge and deploy again so the GitHub build context is fetched fresh.
+
+The current app no longer exits when the user env is missing. It keeps running and shows a login setup error until the separate `.env` file is fixed.
 
 Make sure the separate `.env` file belongs to the Dockge stack and contains at least:
 

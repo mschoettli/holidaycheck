@@ -1097,6 +1097,7 @@
           loginButton: "Einloggen",
           loginPreviewText: "Deine Reisen starten leer und speichern automatisch.",
           loginError: "Login fehlgeschlagen. Prüfe Benutzername und Passwort.",
+          loginSetupError: "Keine Nutzer konfiguriert. Prüfe die separate .env Datei in Dockge.",
           logoutButton: "Abmelden",
           dashboardTitle: "Ferienorte",
           dashboardText: "Wähle einen Ferienort und behalte offene Punkte oben.",
@@ -1137,6 +1138,7 @@
           loginButton: "Sign in",
           loginPreviewText: "Your trips start empty and save automatically.",
           loginError: "Login failed. Check username and password.",
+          loginSetupError: "No users configured. Check the separate .env file in Dockge.",
           logoutButton: "Logout",
           dashboardTitle: "Trips",
           dashboardText: "Choose a destination and keep unfinished items at the top.",
@@ -1517,10 +1519,13 @@
             })
           });
 
-          if (!response.ok) throw new Error("login failed");
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(result.message ? "setup missing" : "login failed");
+          }
           showApp();
         } catch (error) {
-          $("#loginError").textContent = t("loginError");
+          $("#loginError").textContent = error.message === "setup missing" ? t("loginSetupError") : t("loginError");
           $("#loginError").hidden = false;
         } finally {
           submitButton.disabled = false;

@@ -1,8 +1,13 @@
 services:
   holidaycheck:
+    image: holidaycheck:github-main
+    pull_policy: build
     build:
       context: https://github.com/mschoettli/holidaycheck.git#main
       dockerfile: Dockerfile
+      no_cache: true
+      args:
+        HOLIDAYCHECK_BUILD_REVISION: "dockge-github-main"
     container_name: holidaycheck
     ports:
       - "${HOLIDAYCHECK_PORT:-3000}:3000"
