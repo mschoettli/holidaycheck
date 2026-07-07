@@ -30,10 +30,16 @@
         box-sizing: border-box;
       }
 
+      html {
+        min-width: 0;
+        overflow-x: hidden;
+      }
+
       body {
         margin: 0;
         background: var(--bg);
         color: var(--text);
+        overflow-x: hidden;
       }
 
       body.modal-open {
@@ -48,6 +54,13 @@
       button {
         border: 0;
         cursor: pointer;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      input {
+        min-width: 0;
       }
 
       [hidden] {
@@ -117,6 +130,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
+        min-width: 0;
       }
 
       .brand-mark {
@@ -135,6 +149,7 @@
         margin: 0;
         font-size: 22px;
         letter-spacing: 0;
+        overflow-wrap: anywhere;
       }
 
       .brand span {
@@ -142,6 +157,7 @@
         margin-top: 2px;
         color: #bbd1d7;
         font-size: 13px;
+        overflow-wrap: anywhere;
       }
 
       .login-card {
@@ -302,6 +318,7 @@
 
       main {
         min-width: 0;
+        width: 100%;
         padding: 28px;
       }
 
@@ -317,6 +334,7 @@
         margin: 0;
         font-size: 28px;
         letter-spacing: 0;
+        overflow-wrap: anywhere;
       }
 
       .topbar p {
@@ -428,6 +446,8 @@
       .trip-card span,
       .trip-card small {
         color: rgba(255, 255, 255, 0.84);
+        min-width: 0;
+        overflow-wrap: anywhere;
       }
 
       .trip-card small {
@@ -449,6 +469,10 @@
         font-weight: 760;
       }
 
+      .progress-row span {
+        min-width: 0;
+      }
+
       .progress-track {
         height: 8px;
         border-radius: 999px;
@@ -464,6 +488,8 @@
       }
 
       .detail-panel {
+        min-width: 0;
+        max-width: 100%;
         border: 1px solid var(--line);
         border-radius: var(--radius);
         overflow: hidden;
@@ -504,6 +530,7 @@
       .status-pill {
         position: relative;
         z-index: 1;
+        min-width: 0;
       }
 
       .trip-header h3 {
@@ -535,16 +562,21 @@
       .workspace {
         display: grid;
         grid-template-columns: 230px 1fr;
+        min-width: 0;
         min-height: 470px;
       }
 
       .category-nav {
+        min-width: 0;
+        max-width: 100%;
         border-right: 1px solid var(--line);
         background: #fafcfd;
         padding: 12px;
       }
 
       .category-list {
+        min-width: 0;
+        max-width: 100%;
         display: grid;
         gap: 7px;
         margin-bottom: 12px;
@@ -552,6 +584,7 @@
 
       .category-tab {
         width: 100%;
+        min-width: 0;
         min-height: 42px;
         display: flex;
         align-items: center;
@@ -563,6 +596,13 @@
         color: var(--text);
         text-align: left;
         font-weight: 760;
+      }
+
+      .category-tab span:first-child {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .category-tab.active {
@@ -581,6 +621,8 @@
       }
 
       .category-actions {
+        min-width: 0;
+        max-width: 100%;
         display: grid;
         grid-template-columns: 1fr auto;
         gap: 8px;
@@ -595,10 +637,13 @@
 
       .checklist-area {
         min-width: 0;
+        max-width: 100%;
         padding: 18px;
       }
 
       .list-head {
+        min-width: 0;
+        max-width: 100%;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -627,7 +672,7 @@
 
       .check-item {
         display: grid;
-        grid-template-columns: auto 1fr auto;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         gap: 10px;
         align-items: center;
         min-height: 50px;
@@ -673,6 +718,8 @@
       }
 
       .add-form {
+        min-width: 0;
+        max-width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr auto;
         gap: 10px;
@@ -714,6 +761,7 @@
         display: grid;
         place-items: center;
         padding: 18px;
+        overflow: auto;
         background: rgba(10, 25, 31, 0.55);
       }
 
@@ -805,6 +853,7 @@
       .modal-actions {
         border-top: 1px solid var(--line);
         justify-content: end;
+        background: var(--surface);
       }
 
       .modal-actions .ghost-button {
@@ -846,10 +895,13 @@
         }
 
         .category-list {
-          grid-auto-flow: column;
-          grid-auto-columns: minmax(145px, 1fr);
+          display: flex;
           overflow-x: auto;
           padding-bottom: 4px;
+        }
+
+        .category-tab {
+          flex: 0 0 145px;
         }
       }
 
@@ -860,28 +912,84 @@
           padding: 16px;
         }
 
+        .login-screen {
+          min-height: 100dvh;
+        }
+
+        .login-panel {
+          min-height: 100dvh;
+          justify-content: start;
+        }
+
+        .login-card {
+          padding-top: 12px;
+        }
+
         .app-header,
         .topbar,
         .list-head,
-        .trip-header {
+        .trip-header,
+        .modal-actions {
           align-items: stretch;
           flex-direction: column;
           grid-template-columns: 1fr;
         }
 
+        .app-header {
+          position: static;
+          gap: 14px;
+        }
+
         .app-actions {
           width: 100%;
-          justify-content: space-between;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          justify-content: stretch;
+        }
+
+        .app-actions .language-switch {
+          width: auto;
         }
 
         .trip-grid,
         .add-form,
         .modal-grid {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
         }
 
         .trip-grid {
-          max-width: 360px;
+          max-width: none;
+          gap: 10px;
+        }
+
+        .trip-card-content {
+          gap: 6px;
+          padding: 10px;
+        }
+
+        .trip-card strong {
+          font-size: clamp(15px, 4vw, 18px);
+          line-height: 1.08;
+        }
+
+        .trip-card span,
+        .trip-card small {
+          font-size: 11px;
+          line-height: 1.2;
+        }
+
+        .progress-row {
+          gap: 6px;
+          font-size: 10px;
+        }
+
+        .trip-header {
+          min-height: 150px;
+          padding: 18px;
+        }
+
+        .trip-header h3 {
+          font-size: clamp(24px, 9vw, 34px);
         }
 
         .maps-panel {
@@ -889,8 +997,25 @@
           flex-direction: column;
         }
 
-        .status-pill {
+        .status-pill,
+        .topbar .primary-button,
+        .list-head .ghost-button,
+        .add-form .primary-button,
+        .maps-panel .text-button,
+        .modal-actions button {
           width: 100%;
+        }
+
+        .category-list {
+          gap: 8px;
+        }
+
+        .category-tab {
+          flex-basis: 122px;
+        }
+
+        .category-actions {
+          grid-template-columns: minmax(0, 1fr) auto;
         }
 
         .checklist-area {
@@ -898,12 +1023,42 @@
         }
 
         .check-item {
-          grid-template-columns: auto 1fr;
+          grid-template-columns: auto minmax(0, 1fr) auto;
         }
 
         .delete-button {
-          grid-column: 2;
-          justify-self: end;
+          grid-column: auto;
+        }
+
+        .add-form,
+        .modal-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .modal-backdrop {
+          align-items: start;
+          padding: 10px;
+        }
+
+        .modal {
+          max-height: none;
+        }
+
+        .modal-header,
+        .modal-body,
+        .modal-actions {
+          padding: 14px;
+        }
+
+        .modal-actions {
+          position: sticky;
+          bottom: 0;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .trip-grid {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -1171,7 +1326,7 @@
         }
       };
 
-      function svgImage(title, from, mid, to) {
+      function svgImage(from, mid, to) {
         const svg = `
           <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
             <defs>
@@ -1185,12 +1340,11 @@
             <circle cx="930" cy="170" r="92" fill="#fff6df" opacity=".85"/>
             <path d="M0 645 C160 568 270 612 430 548 C610 476 740 575 905 505 C1030 452 1128 486 1200 430 L1200 900 L0 900 Z" fill="#ffffff" opacity=".86"/>
             <path d="M0 515 C150 455 295 490 455 425 C610 362 760 432 920 350 C1050 284 1132 315 1200 270" fill="none" stroke="#ffffff" stroke-width="20" opacity=".42"/>
-            <text x="64" y="124" fill="#ffffff" font-family="Arial, sans-serif" font-size="58" font-weight="700">${title}</text>
           </svg>`;
         return `data:image/svg+xml,${encodeURIComponent(svg)}`;
       }
 
-      const defaultTripImage = svgImage("Holiday", "#8bd4df", "#f6cf8f", "#087f8c");
+      const defaultTripImage = svgImage("#8bd4df", "#f6cf8f", "#087f8c");
 
       let state = {
         language: "de",
@@ -1504,7 +1658,7 @@
 
       $("#loginForm").addEventListener("submit", async (event) => {
         event.preventDefault();
-        const submitButton = event.submitter;
+        const submitButton = event.submitter || $("#loginForm button[type='submit']");
         submitButton.disabled = true;
         $("#loginError").hidden = true;
 

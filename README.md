@@ -42,6 +42,8 @@ Create a separate `.env` file for the stack. User 1 is required:
 ```env
 HOLIDAYCHECK_PORT=3000
 SESSION_TTL_SECONDS=86400
+TZ=Europe/Zurich
+WATCHTOWER_SCHEDULE=0 0 4 * * *
 
 HOLIDAYCHECK_USER_1_NAME=admin
 HOLIDAYCHECK_USER_1_PASSWORD=change-this-password
@@ -65,6 +67,18 @@ HOLIDAYCHECK_USER_2_PASSWORD=
 The app reads `HOLIDAYCHECK_USER_1_NAME` / `HOLIDAYCHECK_USER_1_PASSWORD` through `HOLIDAYCHECK_USER_5_NAME` / `HOLIDAYCHECK_USER_5_PASSWORD`. User 1 is required. For production, replace the demo passwords before starting the container. Do not commit your real `.env`.
 
 Legacy `HOLIDAYCHECK_USER_1_EMAIL` style variables are still accepted as usernames so older Dockge stacks do not crash, but the clean setup should use `NAME`.
+
+## Watchtower
+
+The compose stack includes Watchtower with label mode enabled. It checks for updates every day at 04:00 by default and cleans old images after updating.
+
+Watchtower updates registry images, not raw Git build contexts. This repository therefore includes a GitHub Actions workflow that publishes:
+
+```text
+ghcr.io/mschoettli/holidaycheck:latest
+```
+
+If the GHCR package is private, log in to `ghcr.io` on the Docker host or make the package public in GitHub Packages. Dockge can still rebuild directly from the GitHub context, while Watchtower can update from GHCR once the image exists.
 
 ## Dockge Troubleshooting
 

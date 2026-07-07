@@ -1,6 +1,6 @@
 services:
   holidaycheck:
-    image: holidaycheck:github-main
+    image: ghcr.io/mschoettli/holidaycheck:latest
     pull_policy: build
     build:
       context: https://github.com/mschoettli/holidaycheck.git#main
@@ -17,8 +17,24 @@ services:
       HOST: "0.0.0.0"
       PORT: "3000"
       DATA_DIR: "/app/data"
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
     volumes:
       - holidaycheck_data:/app/data
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: holidaycheck-watchtower
+    environment:
+      TZ: "${TZ:-Europe/Zurich}"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_SCHEDULE: "${WATCHTOWER_SCHEDULE:-0 0 4 * * *}"
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
 volumes:
