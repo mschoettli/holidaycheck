@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
       no_cache: true
       args:
-        HOLIDAYCHECK_BUILD_REVISION: "dockge-github-main"
+        HOLIDAYCHECK_BUILD_REVISION: "auto"
     container_name: holidaycheck
     ports:
       - "${HOLIDAYCHECK_PORT:-3000}:3000"
@@ -18,6 +18,8 @@ services:
       PORT: "3000"
       DATA_DIR: "/app/data"
       HOLIDAYCHECK_LANGUAGE: "${HOLIDAYCHECK_LANGUAGE:-de}"
+      WATCHTOWER_URL: "http://watchtower:8080/v1/update"
+      WATCHTOWER_HTTP_API_TOKEN: "${WATCHTOWER_HTTP_API_TOKEN:-holidaycheck-update-token}"
     labels:
       com.centurylinklabs.watchtower.enable: "true"
     volumes:
@@ -32,6 +34,8 @@ services:
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_LABEL_ENABLE: "true"
       WATCHTOWER_SCHEDULE: "${WATCHTOWER_SCHEDULE:-0 0 4 * * *}"
+      WATCHTOWER_HTTP_API_UPDATE: "true"
+      WATCHTOWER_HTTP_API_TOKEN: "${WATCHTOWER_HTTP_API_TOKEN:-holidaycheck-update-token}"
     labels:
       com.centurylinklabs.watchtower.enable: "true"
     volumes:

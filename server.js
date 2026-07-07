@@ -7,13 +7,17 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 const PUBLIC_DIR = path.join(__dirname, "public");
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
+const BUILD_INFO_FILE = path.join(__dirname, "build-info.json");
 const SESSION_COOKIE = "holidaycheck_session";
 const SESSION_TTL_MS = Number(process.env.SESSION_TTL_SECONDS || 86400) * 1000;
 const APP_LANGUAGE = ["de", "en"].includes(String(process.env.HOLIDAYCHECK_LANGUAGE || "").toLowerCase())
   ? String(process.env.HOLIDAYCHECK_LANGUAGE).toLowerCase()
   : "de";
+const GITHUB_LATEST_COMMIT_URL = "https://api.github.com/repos/mschoettli/holidaycheck/commits/main";
+const UPDATE_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const sessions = new Map();
+let updateCache = null;
 
 function parseUsers() {
   const users = new Map();
@@ -46,7 +50,7 @@ const users = parseUsers();
 const hasConfiguredUsers = users.size > 0;
 const missingUsersMessage =
   "No holidaycheck users configured. Set HOLIDAYCHECK_USER_1_NAME and HOLIDAYCHECK_USER_1_PASSWORD in your separate .env file.";
-const buildRevision = process.env.HOLIDAYCHECK_BUILD_REVISION || "local";
+const buildRevision = resolveBuildRevision();
 
 if (hasConfiguredUsers) {
   console.log(`holidaycheck ${buildRevision} configured ${users.size} user${users.size === 1 ? "" : "s"}`);
@@ -63,6 +67,84 @@ function sendJson(res, statusCode, payload, headers = {}) {
     ...headers
   });
   res.end(JSON.stringify(payload));
+}
+
+function resolveBuildRevision() {
+  const envRevision = String(process.env.HOLIDAYCHECK_BUILD_REVISION || "").trim();
+  if (envRevision && envRevision !== "auto") return envRevision;
+
+  try {
+    const buildInfo = JSON.parse(fs.readFileSync(BUILD_INFO_FILE, "utf8"));
+    return String(buildInfo.revision || "unknown").trim();
+  } catch (error) {
+    return envRevision || "local";
+  }
+}
+
+function normalizeRevision(revision) {
+  const value = String(revision || "").trim().toLowerCase();
+  return /^[0-9a-f]{7,40}$/.test(value) ? value : "";
+}
+
+function shortRevision(revision) {
+  const value = String(revision || "").trim();
+  if (!value) return "unknown";
+  return value.length > 12 ? value.slice(0, 7) : value;
+}
+
+async function fetchLatestRevision() {
+  if (updateCache && updateCache.expiresAt > Date.now()) return updateCache.revision;
+
+  try {
+    const response = await fetch(GITHUB_LATEST_COMMIT_URL, {
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "holidaycheck"
+      }
+    });
+    if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
+    const payload = await response.json();
+    updateCache = {
+      revision: String(payload.sha || ""),
+      expiresAt: Date.now() + UPDATE_CACHE_TTL_MS
+    };
+    return updateCache.revision;
+  } catch (error) {
+    updateCache = {
+      revision: "",
+      expiresAt: Date.now() + 60 * 1000
+    };
+    return "";
+  }
+}
+
+async function getUpdateStatus() {
+  const latestRevision = await fetchLatestRevision();
+  const currentNormalized = normalizeRevision(buildRevision);
+  const latestNormalized = normalizeRevision(latestRevision);
+  const canCompare = Boolean(currentNormalized && latestNormalized);
+
+  return {
+    currentRevision: shortRevision(buildRevision),
+    updateAvailable: canCompare ? !latestNormalized.startsWith(currentNormalized) : false,
+    isLatest: canCompare ? latestNormalized.startsWith(currentNormalized) : false,
+    canCheck: Boolean(latestNormalized),
+    canUpdate: Boolean(process.env.WATCHTOWER_HTTP_API_TOKEN && process.env.WATCHTOWER_URL)
+  };
+}
+
+async function triggerUpdate() {
+  const token = String(process.env.WATCHTOWER_HTTP_API_TOKEN || "");
+  const updateUrl = String(process.env.WATCHTOWER_URL || "");
+  if (!token || !updateUrl) return { started: false };
+
+  const response = await fetch(updateUrl, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  return { started: response.ok };
 }
 
 function readJson(req) {
@@ -231,6 +313,29 @@ async function handleApi(req, res) {
     const session = getSession(req);
     sendJson(res, 200, session ? { ok: true, username: session.username } : { ok: false });
     return;
+  }
+
+  if (req.url === "/api/update") {
+    const session = getSession(req);
+    if (!session) {
+      sendJson(res, 401, { ok: false });
+      return;
+    }
+
+    if (req.method === "GET") {
+      sendJson(res, 200, { ok: true, update: await getUpdateStatus() });
+      return;
+    }
+
+    if (req.method === "POST") {
+      try {
+        const result = await triggerUpdate();
+        sendJson(res, result.started ? 200 : 503, { ok: result.started, started: result.started });
+      } catch (error) {
+        sendJson(res, 503, { ok: false, started: false });
+      }
+      return;
+    }
   }
 
   if (req.method === "GET" && req.url === "/api/data") {
