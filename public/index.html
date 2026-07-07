@@ -1,0 +1,1669 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>holidaycheck</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7f8;
+        --surface: #ffffff;
+        --surface-soft: #edf5f6;
+        --text: #152028;
+        --muted: #60707c;
+        --line: #d8e3e7;
+        --brand: #087f8c;
+        --brand-dark: #045e68;
+        --accent: #c1763c;
+        --danger: #b42318;
+        --ok: #25845c;
+        --shadow: 0 18px 42px rgba(21, 32, 40, 0.11);
+        --soft-shadow: 0 10px 26px rgba(21, 32, 40, 0.08);
+        --radius: 8px;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      body.modal-open {
+        overflow: hidden;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .login-screen {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: minmax(320px, 440px) 1fr;
+        background:
+          linear-gradient(115deg, rgba(18, 50, 58, 0.95), rgba(4, 94, 104, 0.9)),
+          radial-gradient(circle at 80% 20%, rgba(232, 183, 107, 0.26), transparent 34%),
+          #12323a;
+      }
+
+      .login-panel {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 28px;
+        padding: 40px 32px;
+        color: #f7fbfc;
+      }
+
+      .login-visual {
+        min-height: 100vh;
+        display: grid;
+        align-content: center;
+        padding: 48px;
+      }
+
+      .preview-stack {
+        max-width: 740px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .preview-tile {
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.14);
+        box-shadow: var(--shadow);
+      }
+
+      .preview-image {
+        height: 280px;
+        background:
+          linear-gradient(180deg, rgba(3, 31, 36, 0.08), rgba(3, 31, 36, 0.46)),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='720' viewBox='0 0 1200 720'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop offset='0' stop-color='%238bd4df'/%3E%3Cstop offset='0.52' stop-color='%23f6cf8f'/%3E%3Cstop offset='1' stop-color='%23087f8c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='720' fill='url(%23a)'/%3E%3Cpath d='M0 560 C190 500 300 540 460 500 C640 454 730 545 900 492 C1030 452 1120 480 1200 430 L1200 720 L0 720 Z' fill='%23f8fbfc' opacity='.86'/%3E%3Ccircle cx='928' cy='168' r='88' fill='%23fff6df' opacity='.86'/%3E%3Cpath d='M0 450 C165 390 265 430 420 375 C600 310 725 382 875 330 C1025 278 1110 320 1200 266' fill='none' stroke='%23ffffff' stroke-width='18' opacity='.46'/%3E%3C/svg%3E");
+        background-size: cover;
+        background-position: center;
+      }
+
+      .preview-summary {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: center;
+        padding: 18px;
+        color: #fff;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: var(--radius);
+        display: grid;
+        place-items: center;
+        background: #e8b76b;
+        color: #12323a;
+        font-weight: 850;
+      }
+
+      .brand h1,
+      .brand h2 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 0;
+      }
+
+      .brand span {
+        display: block;
+        margin-top: 2px;
+        color: #bbd1d7;
+        font-size: 13px;
+      }
+
+      .login-card {
+        display: grid;
+        gap: 14px;
+        padding-top: 22px;
+      }
+
+      .login-card h2 {
+        margin: 0;
+        font-size: 26px;
+      }
+
+      .login-card p {
+        margin: 0 0 4px;
+        color: #c4dce2;
+        line-height: 1.5;
+      }
+
+      .login-error {
+        margin: 0;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: var(--radius);
+        background: rgba(180, 35, 24, 0.22);
+        color: #ffe5e1;
+        font-weight: 700;
+      }
+
+      .field,
+      .modal-field,
+      .add-form label {
+        display: grid;
+        gap: 7px;
+      }
+
+      .field label {
+        color: #d7e8ec;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .field input,
+      .modal-field input,
+      .add-form input,
+      .category-actions input {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 10px 12px;
+        color: var(--text);
+        background: var(--surface);
+      }
+
+      .field input:focus,
+      .modal-field input:focus,
+      .add-form input:focus,
+      .category-actions input:focus {
+        outline: 3px solid rgba(8, 127, 140, 0.18);
+        border-color: var(--brand);
+      }
+
+      .primary-button,
+      .ghost-button,
+      .small-button,
+      .text-button {
+        min-height: 42px;
+        border-radius: var(--radius);
+        font-weight: 780;
+      }
+
+      .primary-button {
+        background: var(--brand);
+        color: #fff;
+        padding: 0 16px;
+      }
+
+      .primary-button:hover {
+        background: var(--brand-dark);
+      }
+
+      .ghost-button {
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        padding: 0 14px;
+      }
+
+      .text-button {
+        background: transparent;
+        color: var(--brand-dark);
+        padding: 0 10px;
+      }
+
+      .language-switch {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 4px;
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .language-switch button {
+        min-height: 38px;
+        border-radius: 6px;
+        background: transparent;
+        color: #d7e8ec;
+        font-weight: 780;
+      }
+
+      .language-switch button.active {
+        background: #ffffff;
+        color: #12323a;
+      }
+
+      .app-shell {
+        min-height: 100vh;
+      }
+
+      .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 14px 28px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(16px);
+      }
+
+      .app-header .brand span {
+        color: var(--muted);
+      }
+
+      .app-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .app-actions .language-switch {
+        width: 124px;
+        background: #e9f1f3;
+      }
+
+      .app-actions .language-switch button {
+        color: var(--muted);
+      }
+
+      .app-actions .language-switch button.active {
+        color: var(--brand-dark);
+      }
+
+      main {
+        min-width: 0;
+        padding: 28px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+
+      .topbar h2 {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: 0;
+      }
+
+      .topbar p {
+        margin: 5px 0 0;
+        color: var(--muted);
+      }
+
+      .trip-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+
+      .trip-card-shell {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        min-width: 0;
+      }
+
+      .trip-card {
+        position: absolute;
+        inset: 0;
+        isolation: isolate;
+        min-height: 0;
+        overflow: hidden;
+        display: grid;
+        align-content: end;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.52);
+        border-radius: var(--radius);
+        background: #d9e8ec;
+        color: #fff;
+        text-align: left;
+        box-shadow: var(--soft-shadow);
+        transition:
+          transform 160ms ease,
+          box-shadow 160ms ease,
+          border-color 160ms ease;
+      }
+
+      .trip-card:hover,
+      .trip-card:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+
+      .trip-card-shell.active .trip-card {
+        border-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(8, 127, 140, 0.25), var(--shadow);
+      }
+
+      .trip-menu-button {
+        position: absolute;
+        top: 9px;
+        right: 9px;
+        z-index: 2;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--text);
+        box-shadow: 0 8px 22px rgba(21, 32, 40, 0.18);
+        font-size: 19px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .trip-menu-button:hover,
+      .trip-menu-button:focus-visible {
+        background: #fff;
+        outline: 3px solid rgba(8, 127, 140, 0.24);
+      }
+
+      .trip-image {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .trip-card::after {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        content: "";
+        background:
+          linear-gradient(180deg, rgba(10, 25, 31, 0.02) 22%, rgba(10, 25, 31, 0.52) 64%, rgba(10, 25, 31, 0.88) 100%),
+          linear-gradient(90deg, rgba(8, 127, 140, 0.28), rgba(193, 118, 60, 0.12));
+      }
+
+      .trip-card-content {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .trip-card strong {
+        display: block;
+        font-size: clamp(17px, 1.7vw, 22px);
+        line-height: 1.05;
+        overflow-wrap: anywhere;
+      }
+
+      .trip-card span,
+      .trip-card small {
+        color: rgba(255, 255, 255, 0.84);
+      }
+
+      .trip-card small {
+        font-weight: 700;
+      }
+
+      .progress-line {
+        display: grid;
+        gap: 6px;
+      }
+
+      .progress-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 11px;
+        font-weight: 760;
+      }
+
+      .progress-track {
+        height: 8px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      .progress-fill {
+        height: 100%;
+        width: var(--progress);
+        border-radius: inherit;
+        background: linear-gradient(90deg, #7bdcb5, #e8b76b);
+      }
+
+      .detail-panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--surface);
+        box-shadow: var(--soft-shadow);
+      }
+
+      .trip-header {
+        position: relative;
+        min-height: 172px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 18px;
+        align-items: end;
+        padding: 22px;
+        color: #fff;
+        background: #12323a;
+      }
+
+      .trip-header img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .trip-header::after {
+        position: absolute;
+        inset: 0;
+        content: "";
+        background:
+          linear-gradient(180deg, rgba(7, 24, 30, 0.12), rgba(7, 24, 30, 0.82)),
+          linear-gradient(90deg, rgba(4, 94, 104, 0.55), rgba(0, 0, 0, 0.05));
+      }
+
+      .trip-header-content,
+      .status-pill {
+        position: relative;
+        z-index: 1;
+      }
+
+      .trip-header h3 {
+        margin: 0;
+        font-size: clamp(25px, 4vw, 42px);
+        line-height: 1;
+      }
+
+      .trip-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 9px;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 14px;
+      }
+
+      .status-pill {
+        min-width: 132px;
+        padding: 10px 13px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--brand-dark);
+        text-align: center;
+        font-weight: 850;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        min-height: 470px;
+      }
+
+      .category-nav {
+        border-right: 1px solid var(--line);
+        background: #fafcfd;
+        padding: 12px;
+      }
+
+      .category-list {
+        display: grid;
+        gap: 7px;
+        margin-bottom: 12px;
+      }
+
+      .category-tab {
+        width: 100%;
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 9px 10px;
+        border-radius: var(--radius);
+        background: transparent;
+        color: var(--text);
+        text-align: left;
+        font-weight: 760;
+      }
+
+      .category-tab.active {
+        background: #dff0f2;
+        color: var(--brand-dark);
+      }
+
+      .category-count {
+        min-width: 28px;
+        padding: 3px 7px;
+        border-radius: 999px;
+        background: #fff;
+        color: var(--muted);
+        text-align: center;
+        font-size: 12px;
+      }
+
+      .category-actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+      }
+
+      .small-button {
+        min-width: 42px;
+        padding: 0 12px;
+        background: var(--text);
+        color: #fff;
+      }
+
+      .checklist-area {
+        min-width: 0;
+        padding: 18px;
+      }
+
+      .list-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+
+      .list-head h3 {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .list-head p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .checklist {
+        display: grid;
+        gap: 8px;
+        margin: 0 0 14px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .check-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 10px;
+        align-items: center;
+        min-height: 50px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+      }
+
+      .check-item.done {
+        background: #f7faf9;
+        color: var(--muted);
+      }
+
+      .check-item.done .item-title {
+        text-decoration: line-through;
+      }
+
+      .check-item input {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--brand);
+      }
+
+      .item-title {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-weight: 740;
+      }
+
+      .item-note {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .delete-button {
+        width: 34px;
+        height: 34px;
+        border-radius: var(--radius);
+        background: #f8e9e7;
+        color: var(--danger);
+        font-weight: 900;
+      }
+
+      .add-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 10px;
+        align-items: end;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+      }
+
+      .add-form label,
+      .modal-field label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 780;
+      }
+
+      .empty-state {
+        padding: 28px;
+        border: 1px dashed var(--line);
+        border-radius: var(--radius);
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        background: rgba(10, 25, 31, 0.55);
+      }
+
+      .modal {
+        width: min(620px, 100%);
+        max-height: min(760px, calc(100vh - 36px));
+        overflow: auto;
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .modal-header,
+      .modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 18px;
+      }
+
+      .modal-header {
+        border-bottom: 1px solid var(--line);
+      }
+
+      .modal-header h3 {
+        margin: 0;
+        font-size: 22px;
+      }
+
+      .close-button {
+        width: 38px;
+        height: 38px;
+        border-radius: var(--radius);
+        background: #eef3f5;
+        color: var(--text);
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      .modal-body {
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+      }
+
+      .modal-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .image-upload {
+        display: grid;
+        gap: 10px;
+      }
+
+      .image-preview {
+        aspect-ratio: 16 / 7;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+      }
+
+      .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .maps-panel {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #f8fbfc;
+      }
+
+      .maps-panel span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .modal-actions {
+        border-top: 1px solid var(--line);
+        justify-content: end;
+      }
+
+      .modal-actions .ghost-button {
+        border-color: var(--line);
+        background: #fff;
+        color: var(--text);
+      }
+
+      @media (max-width: 1180px) {
+        .trip-grid {
+          grid-template-columns: repeat(auto-fill, minmax(154px, 1fr));
+        }
+      }
+
+      @media (max-width: 920px) {
+        .login-screen {
+          grid-template-columns: 1fr;
+        }
+
+        .login-panel {
+          min-height: auto;
+        }
+
+        .login-visual {
+          display: none;
+        }
+
+        .trip-grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .category-nav {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .category-list {
+          grid-auto-flow: column;
+          grid-auto-columns: minmax(145px, 1fr);
+          overflow-x: auto;
+          padding-bottom: 4px;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .login-panel,
+        main,
+        .app-header {
+          padding: 16px;
+        }
+
+        .app-header,
+        .topbar,
+        .list-head,
+        .trip-header {
+          align-items: stretch;
+          flex-direction: column;
+          grid-template-columns: 1fr;
+        }
+
+        .app-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .trip-grid,
+        .add-form,
+        .modal-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .trip-grid {
+          max-width: 360px;
+        }
+
+        .maps-panel {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .status-pill {
+          width: 100%;
+        }
+
+        .checklist-area {
+          padding: 14px;
+        }
+
+        .check-item {
+          grid-template-columns: auto 1fr;
+        }
+
+        .delete-button {
+          grid-column: 2;
+          justify-self: end;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="login-screen" id="loginScreen" aria-label="Login">
+      <aside class="login-panel">
+        <div class="brand">
+          <div class="brand-mark">HC</div>
+          <div>
+            <h1 data-i18n="appTitle">holidaycheck</h1>
+            <span data-i18n="appSubtitle">Packing and shopping checklist</span>
+          </div>
+        </div>
+
+        <form class="login-card" id="loginForm">
+          <div>
+            <h2 data-i18n="loginTitle">Login</h2>
+            <p data-i18n="loginIntro">Plan trips, purchases and packing lists in one calm overview.</p>
+          </div>
+          <div class="field">
+            <label for="email" data-i18n="emailLabel">Email</label>
+            <input id="email" type="email" value="demo@holiday.test" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="password" data-i18n="passwordLabel">Password</label>
+            <input id="password" type="password" value="holiday" autocomplete="current-password" />
+          </div>
+          <button class="primary-button" type="submit" data-i18n="loginButton">Sign in</button>
+          <p class="login-error" id="loginError" role="alert" hidden></p>
+        </form>
+
+        <div class="language-switch" aria-label="Language">
+          <button type="button" class="active" data-lang="de">DE</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+      </aside>
+
+      <div class="login-visual" aria-hidden="true">
+        <div class="preview-stack">
+          <div class="preview-tile">
+            <div class="preview-image"></div>
+            <div class="preview-summary">
+              <div>
+                <strong>Mallorca</strong>
+                <div>5 offen / 2 erledigt</div>
+              </div>
+              <div class="status-pill">29%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="app-shell" id="appShell" hidden>
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark">HC</div>
+          <div>
+            <h2 data-i18n="appTitle">holidaycheck</h2>
+            <span data-i18n="appSubtitle">Packing and shopping checklist</span>
+          </div>
+        </div>
+        <div class="app-actions">
+          <div class="language-switch" aria-label="Language">
+            <button type="button" class="active" data-lang="de">DE</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+          <button class="text-button" type="button" id="resetDemo" data-i18n="resetButton">Reset demo</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="topbar" aria-labelledby="dashboardTitle">
+          <div>
+            <h2 id="dashboardTitle" data-i18n="dashboardTitle">Trips</h2>
+            <p data-i18n="dashboardText">Choose a destination and keep unfinished items at the top.</p>
+          </div>
+          <button class="primary-button" type="button" id="openTripModal" data-i18n="quickTrip">Add trip</button>
+        </section>
+
+        <section class="trip-grid" id="tripGrid" aria-label="Trips"></section>
+
+        <section class="detail-panel" aria-label="Checklist detail">
+          <header class="trip-header">
+            <img id="activeTripImage" alt="" />
+            <div class="trip-header-content">
+              <h3 id="activeTripName">Mallorca</h3>
+              <div class="trip-meta">
+                <span id="activeTripDates">12.08.2026 - 24.08.2026</span>
+                <span id="activeTripPlace">Palma, Spain</span>
+              </div>
+            </div>
+            <div class="status-pill" id="tripStatus">0 / 0</div>
+          </header>
+
+          <div class="workspace">
+            <nav class="category-nav" aria-label="Categories">
+              <div class="category-list" id="categoryList"></div>
+              <form class="category-actions" id="categoryForm">
+                <input id="categoryInput" type="text" data-i18n-placeholder="categoryPlaceholder" placeholder="New category" />
+                <button class="small-button" type="submit" aria-label="Add category">+</button>
+              </form>
+            </nav>
+
+            <section class="checklist-area">
+              <div class="list-head">
+                <div>
+                  <h3 id="categoryTitle">Clothing</h3>
+                  <p id="categoryHint">Open items stay above completed items.</p>
+                </div>
+                <button class="ghost-button" type="button" id="clearDone" style="color: var(--danger); border-color: var(--line); background: #fff;" data-i18n="clearDone">Clear checked</button>
+              </div>
+
+              <ul class="checklist" id="checklist"></ul>
+
+              <form class="add-form" id="itemForm">
+                <label>
+                  <span data-i18n="itemLabel">Item</span>
+                  <input id="itemInput" type="text" data-i18n-placeholder="itemPlaceholder" placeholder="Sunglasses" />
+                </label>
+                <label>
+                  <span data-i18n="noteLabel">Note</span>
+                  <input id="noteInput" type="text" data-i18n-placeholder="notePlaceholder" placeholder="optional" />
+                </label>
+                <button class="primary-button" type="submit" data-i18n="addItem">Add</button>
+              </form>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="tripModal" hidden>
+      <form class="modal" id="tripForm" aria-labelledby="tripModalTitle">
+        <div class="modal-header">
+          <h3 id="tripModalTitle" data-i18n="tripModalTitle">Add trip</h3>
+          <button class="close-button" type="button" id="closeTripModal" aria-label="Close">x</button>
+        </div>
+        <div class="modal-body">
+          <label class="modal-field">
+            <span data-i18n="placeLabel">Destination</span>
+            <input id="tripPlace" type="text" placeholder="Mallorca" />
+          </label>
+          <label class="modal-field">
+            <span data-i18n="locationLabel">Location details</span>
+            <input id="tripLocation" type="text" placeholder="Palma, Spain" />
+          </label>
+          <div class="modal-grid">
+            <label class="modal-field">
+              <span data-i18n="fromLabel">From</span>
+              <input id="tripFrom" type="date" />
+            </label>
+            <label class="modal-field">
+              <span data-i18n="toLabel">To</span>
+              <input id="tripTo" type="date" />
+            </label>
+          </div>
+          <label class="modal-field image-upload">
+            <span data-i18n="imageLabel">Header image</span>
+            <input id="tripImage" type="file" accept="image/*" />
+          </label>
+          <div class="image-preview">
+            <img id="imagePreview" alt="" />
+          </div>
+          <div class="maps-panel">
+            <span data-i18n="mapsHint">Open the destination in Google Maps using the current place details.</span>
+            <button class="text-button" type="button" id="openGoogleMaps" data-i18n="googleMapsButton">Open Google Maps</button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="ghost-button" type="button" id="cancelTripModal" data-i18n="cancelButton">Cancel</button>
+          <button class="primary-button" type="submit" data-i18n="saveTrip">Save</button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      const translations = {
+        de: {
+          appTitle: "holidaycheck",
+          appSubtitle: "Ferien- und Einkaufscheckliste",
+          loginTitle: "Login",
+          loginIntro: "Plane Ferienorte, Einkäufe und Packlisten in einer ruhigen Übersicht.",
+          emailLabel: "E-Mail",
+          passwordLabel: "Passwort",
+          loginButton: "Einloggen",
+          loginError: "Login fehlgeschlagen. Prüfe E-Mail und Passwort.",
+          resetButton: "Demo zurücksetzen",
+          dashboardTitle: "Ferienorte",
+          dashboardText: "Wähle einen Ferienort und behalte offene Punkte oben.",
+          quickTrip: "Reise hinzufügen",
+          tripModalTitle: "Reise hinzufügen",
+          editTripModalTitle: "Reise bearbeiten",
+          editTripLabel: "Reise bearbeiten",
+          placeLabel: "Ferienort",
+          locationLabel: "Ortsangaben",
+          fromLabel: "Von",
+          toLabel: "Bis",
+          imageLabel: "Header-Bild",
+          mapsHint: "Öffne den Ferienort in Google Maps mit den aktuellen Ortsangaben.",
+          googleMapsButton: "Google Maps öffnen",
+          cancelButton: "Abbrechen",
+          saveTrip: "Speichern",
+          categoryPlaceholder: "Neue Kategorie",
+          clearDone: "Erledigte löschen",
+          itemLabel: "Eintrag",
+          noteLabel: "Notiz",
+          itemPlaceholder: "Sonnenbrille",
+          notePlaceholder: "optional",
+          addItem: "Hinzufügen",
+          openItems: "offen",
+          doneItems: "erledigt",
+          complete: "fertig",
+          empty: "Keine Einträge in dieser Kategorie.",
+          categoryHint: "Offene Einträge bleiben über erledigten Einträgen."
+        },
+        en: {
+          appTitle: "holidaycheck",
+          appSubtitle: "Holiday and shopping checklist",
+          loginTitle: "Login",
+          loginIntro: "Plan destinations, shopping and packing lists in one calm overview.",
+          emailLabel: "Email",
+          passwordLabel: "Password",
+          loginButton: "Sign in",
+          loginError: "Login failed. Check email and password.",
+          resetButton: "Reset demo",
+          dashboardTitle: "Trips",
+          dashboardText: "Choose a destination and keep unfinished items at the top.",
+          quickTrip: "Add trip",
+          tripModalTitle: "Add trip",
+          editTripModalTitle: "Edit trip",
+          editTripLabel: "Edit trip",
+          placeLabel: "Destination",
+          locationLabel: "Location details",
+          fromLabel: "From",
+          toLabel: "To",
+          imageLabel: "Header image",
+          mapsHint: "Open the destination in Google Maps using the current place details.",
+          googleMapsButton: "Open Google Maps",
+          cancelButton: "Cancel",
+          saveTrip: "Save",
+          categoryPlaceholder: "New category",
+          clearDone: "Clear checked",
+          itemLabel: "Item",
+          noteLabel: "Note",
+          itemPlaceholder: "Sunglasses",
+          notePlaceholder: "optional",
+          addItem: "Add",
+          openItems: "open",
+          doneItems: "done",
+          complete: "complete",
+          empty: "No items in this category.",
+          categoryHint: "Open items stay above completed items."
+        }
+      };
+
+      function svgImage(title, from, mid, to) {
+        const svg = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+            <defs>
+              <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="${from}"/>
+                <stop offset="0.55" stop-color="${mid}"/>
+                <stop offset="1" stop-color="${to}"/>
+              </linearGradient>
+            </defs>
+            <rect width="1200" height="900" fill="url(#g)"/>
+            <circle cx="930" cy="170" r="92" fill="#fff6df" opacity=".85"/>
+            <path d="M0 645 C160 568 270 612 430 548 C610 476 740 575 905 505 C1030 452 1128 486 1200 430 L1200 900 L0 900 Z" fill="#ffffff" opacity=".86"/>
+            <path d="M0 515 C150 455 295 490 455 425 C610 362 760 432 920 350 C1050 284 1132 315 1200 270" fill="none" stroke="#ffffff" stroke-width="20" opacity=".42"/>
+            <text x="64" y="124" fill="#ffffff" font-family="Arial, sans-serif" font-size="58" font-weight="700">${title}</text>
+          </svg>`;
+        return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+      }
+
+      const defaultTripImage = svgImage("Holiday", "#8bd4df", "#f6cf8f", "#087f8c");
+
+      const seedTrips = [
+        {
+          id: "mallorca",
+          place: "Mallorca",
+          location: "Palma, Spain",
+          from: "2026-08-12",
+          to: "2026-08-24",
+          image: svgImage("Mallorca", "#76c7d4", "#f2bf76", "#087f8c"),
+          categories: [
+            {
+              id: "clothing",
+              de: "Kleidung",
+              en: "Clothing",
+              items: [
+                { id: "shirts", de: "T-Shirts", en: "T-shirts", noteDe: "7 Stück", noteEn: "7 pieces", done: false },
+                { id: "swimwear", de: "Badebekleidung", en: "Swimwear", noteDe: "Strandtasche", noteEn: "Beach bag", done: false },
+                { id: "jacket", de: "Leichte Jacke", en: "Light jacket", noteDe: "Abend", noteEn: "Evening", done: true }
+              ]
+            },
+            {
+              id: "medicine",
+              de: "Medikamente",
+              en: "Medicine",
+              items: [
+                { id: "painkillers", de: "Schmerzmittel", en: "Painkillers", noteDe: "", noteEn: "", done: false },
+                { id: "prescription", de: "Rezeptpflichtige Medikamente", en: "Prescription medicine", noteDe: "Originalverpackung", noteEn: "Original package", done: false }
+              ]
+            },
+            {
+              id: "shopping",
+              de: "Einkauf",
+              en: "Shopping",
+              items: [
+                { id: "suncream", de: "Sonnencreme SPF 50", en: "Sunscreen SPF 50", noteDe: "", noteEn: "", done: false },
+                { id: "snacks", de: "Reise-Snacks", en: "Travel snacks", noteDe: "Kinder", noteEn: "Kids", done: true }
+              ]
+            }
+          ]
+        },
+        {
+          id: "zermatt",
+          place: "Zermatt",
+          location: "Valais, Switzerland",
+          from: "2026-12-20",
+          to: "2026-12-27",
+          image: svgImage("Zermatt", "#6d90ad", "#f4f7f8", "#12323a"),
+          categories: [
+            {
+              id: "clothing",
+              de: "Kleidung",
+              en: "Clothing",
+              items: [
+                { id: "thermals", de: "Thermounterwäsche", en: "Thermal underwear", noteDe: "", noteEn: "", done: false },
+                { id: "gloves", de: "Handschuhe", en: "Gloves", noteDe: "Wasserdicht", noteEn: "Waterproof", done: false }
+              ]
+            },
+            {
+              id: "documents",
+              de: "Dokumente",
+              en: "Documents",
+              items: [
+                { id: "booking", de: "Hotelbuchung", en: "Hotel booking", noteDe: "PDF offline", noteEn: "PDF offline", done: true },
+                { id: "ski-pass", de: "Skipass", en: "Ski pass", noteDe: "", noteEn: "", done: false }
+              ]
+            }
+          ]
+        },
+        {
+          id: "lisbon",
+          place: "Lisbon",
+          location: "Portugal",
+          from: "2026-10-03",
+          to: "2026-10-10",
+          image: svgImage("Lisbon", "#72a9b3", "#e8b76b", "#bf6b30"),
+          categories: [
+            {
+              id: "documents",
+              de: "Dokumente",
+              en: "Documents",
+              items: [
+                { id: "passport", de: "Pass oder ID", en: "Passport or ID", noteDe: "", noteEn: "", done: false },
+                { id: "tickets", de: "Flugtickets", en: "Flight tickets", noteDe: "Offline speichern", noteEn: "Save offline", done: true }
+              ]
+            },
+            {
+              id: "shopping",
+              de: "Einkauf",
+              en: "Shopping",
+              items: [
+                { id: "adapter", de: "Ladeadapter", en: "Charging adapter", noteDe: "", noteEn: "", done: false }
+              ]
+            }
+          ]
+        }
+      ];
+
+      let state = {
+        language: "de",
+        activeTripId: "mallorca",
+        activeCategoryId: "clothing",
+        trips: structuredClone(seedTrips),
+        pendingImage: defaultTripImage,
+        editingTripId: null
+      };
+
+      const $ = (selector) => document.querySelector(selector);
+      const uid = () => Math.random().toString(36).slice(2, 10);
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function t(key) {
+        return translations[state.language][key] || key;
+      }
+
+      function activeTrip() {
+        return state.trips.find((trip) => trip.id === state.activeTripId) || state.trips[0];
+      }
+
+      function activeCategory() {
+        const trip = activeTrip();
+        return trip.categories.find((category) => category.id === state.activeCategoryId) || trip.categories[0];
+      }
+
+      function formatDate(value) {
+        if (!value) return "";
+        return new Intl.DateTimeFormat(state.language === "de" ? "de-CH" : "en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric"
+        }).format(new Date(value + "T00:00:00"));
+      }
+
+      function tripStats(trip) {
+        const items = trip.categories.flatMap((category) => category.items);
+        const done = items.filter((item) => item.done).length;
+        return { total: items.length, done, open: items.length - done };
+      }
+
+      function categoryName(category) {
+        return category[state.language] || category.name || category.en || category.de;
+      }
+
+      function itemText(item) {
+        return item[state.language] || item.text;
+      }
+
+      function itemNote(item) {
+        return item[state.language === "de" ? "noteDe" : "noteEn"] || item.note || "";
+      }
+
+      function applyLanguage() {
+        document.documentElement.lang = state.language;
+        document.querySelectorAll("[data-i18n]").forEach((node) => {
+          node.textContent = t(node.dataset.i18n);
+        });
+        document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+          node.placeholder = t(node.dataset.i18nPlaceholder);
+        });
+        document.querySelectorAll("[data-lang]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.lang === state.language);
+        });
+        updateTripModalTitle();
+      }
+
+      function updateTripModalTitle() {
+        const title = $("#tripModalTitle");
+        if (!title) return;
+        title.textContent = state.editingTripId ? t("editTripModalTitle") : t("tripModalTitle");
+      }
+
+      function renderTrips() {
+        const grid = $("#tripGrid");
+        grid.innerHTML = "";
+
+        state.trips.forEach((trip) => {
+          const stats = tripStats(trip);
+          const progress = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
+          const shell = document.createElement("article");
+          shell.className = "trip-card-shell";
+          shell.classList.toggle("active", trip.id === state.activeTripId);
+
+          const card = document.createElement("button");
+          card.type = "button";
+          card.className = "trip-card";
+          card.innerHTML = `
+            <img class="trip-image" src="${trip.image || defaultTripImage}" alt="" />
+            <div class="trip-card-content">
+              <div>
+                <strong>${escapeHtml(trip.place)}</strong>
+                <span>${escapeHtml(trip.location)}</span>
+              </div>
+              <small>${formatDate(trip.from)} - ${formatDate(trip.to)}</small>
+              <div class="progress-line">
+                <div class="progress-row">
+                  <span>${stats.open} ${t("openItems")}</span>
+                  <span>${progress}% ${t("complete")}</span>
+                </div>
+                <div class="progress-track" aria-hidden="true">
+                  <div class="progress-fill" style="--progress: ${progress}%"></div>
+                </div>
+              </div>
+            </div>
+          `;
+          card.addEventListener("click", () => {
+            state.activeTripId = trip.id;
+            state.activeCategoryId = trip.categories[0]?.id;
+            render();
+          });
+
+          const menuButton = document.createElement("button");
+          menuButton.type = "button";
+          menuButton.className = "trip-menu-button";
+          menuButton.textContent = "...";
+          menuButton.setAttribute("aria-label", `${t("editTripLabel")}: ${trip.place}`);
+          menuButton.title = t("editTripLabel");
+          menuButton.addEventListener("click", () => openTripModal(trip.id));
+
+          shell.append(card, menuButton);
+          grid.append(shell);
+        });
+      }
+
+      function renderHeader() {
+        const trip = activeTrip();
+        const stats = tripStats(trip);
+        const progress = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
+        $("#activeTripImage").src = trip.image || defaultTripImage;
+        $("#activeTripName").textContent = trip.place;
+        $("#activeTripPlace").textContent = trip.location;
+        $("#activeTripDates").textContent = `${formatDate(trip.from)} - ${formatDate(trip.to)}`;
+        $("#tripStatus").textContent = `${progress}% · ${stats.open} ${t("openItems")}`;
+      }
+
+      function renderCategories() {
+        const list = $("#categoryList");
+        const trip = activeTrip();
+        list.innerHTML = "";
+
+        trip.categories.forEach((category) => {
+          const open = category.items.filter((item) => !item.done).length;
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "category-tab";
+          button.classList.toggle("active", category.id === state.activeCategoryId);
+          button.innerHTML = `<span>${escapeHtml(categoryName(category))}</span><span class="category-count">${open}</span>`;
+          button.addEventListener("click", () => {
+            state.activeCategoryId = category.id;
+            render();
+          });
+          list.append(button);
+        });
+      }
+
+      function renderItems() {
+        const category = activeCategory();
+        const list = $("#checklist");
+        $("#categoryTitle").textContent = categoryName(category);
+        $("#categoryHint").textContent = t("categoryHint");
+        list.innerHTML = "";
+
+        const sortedItems = [...category.items].sort((a, b) => Number(a.done) - Number(b.done));
+        if (!sortedItems.length) {
+          const empty = document.createElement("li");
+          empty.className = "empty-state";
+          empty.textContent = t("empty");
+          list.append(empty);
+          return;
+        }
+
+        sortedItems.forEach((item) => {
+          const li = document.createElement("li");
+          const text = itemText(item);
+          const note = itemNote(item);
+          li.className = "check-item";
+          li.classList.toggle("done", item.done);
+          li.innerHTML = `
+            <input type="checkbox" ${item.done ? "checked" : ""} aria-label="${escapeHtml(text)}" />
+            <div>
+              <div class="item-title">${escapeHtml(text)}</div>
+              ${note ? `<div class="item-note">${escapeHtml(note)}</div>` : ""}
+            </div>
+            <button class="delete-button" type="button" aria-label="Delete">x</button>
+          `;
+          li.querySelector("input").addEventListener("change", (event) => {
+            item.done = event.target.checked;
+            render();
+          });
+          li.querySelector("button").addEventListener("click", () => {
+            category.items = category.items.filter((entry) => entry.id !== item.id);
+            render();
+          });
+          list.append(li);
+        });
+      }
+
+      function render() {
+        applyLanguage();
+        renderTrips();
+        renderHeader();
+        renderCategories();
+        renderItems();
+      }
+
+      function showApp() {
+        $("#loginScreen").hidden = true;
+        $("#appShell").hidden = false;
+        $("#loginError").hidden = true;
+        render();
+      }
+
+      function openTripModal(tripId = null) {
+        state.editingTripId = tripId;
+        const trip = tripId ? state.trips.find((entry) => entry.id === tripId) : null;
+        state.pendingImage = trip?.image || defaultTripImage;
+        $("#tripForm").reset();
+        $("#tripPlace").value = trip?.place || "";
+        $("#tripLocation").value = trip?.location || "";
+        $("#tripFrom").value = trip?.from || "";
+        $("#tripTo").value = trip?.to || "";
+        $("#imagePreview").src = state.pendingImage;
+        updateTripModalTitle();
+        $("#tripModal").hidden = false;
+        document.body.classList.add("modal-open");
+        $("#tripPlace").focus();
+      }
+
+      function closeTripModal() {
+        $("#tripModal").hidden = true;
+        document.body.classList.remove("modal-open");
+        state.editingTripId = null;
+        updateTripModalTitle();
+      }
+
+      function openGoogleMapsSearch() {
+        const query = ($("#tripLocation").value.trim() || $("#tripPlace").value.trim());
+        if (!query) {
+          $("#tripLocation").focus();
+          return;
+        }
+        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+
+      $("#loginForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const submitButton = event.submitter;
+        submitButton.disabled = true;
+        $("#loginError").hidden = true;
+
+        try {
+          const response = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({
+              email: $("#email").value.trim(),
+              password: $("#password").value
+            })
+          });
+
+          if (!response.ok) throw new Error("login failed");
+          showApp();
+        } catch (error) {
+          $("#loginError").textContent = t("loginError");
+          $("#loginError").hidden = false;
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+
+      $("#resetDemo").addEventListener("click", () => {
+        state.trips = structuredClone(seedTrips);
+        state.activeTripId = "mallorca";
+        state.activeCategoryId = "clothing";
+        render();
+      });
+
+      document.querySelectorAll("[data-lang]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.language = button.dataset.lang;
+          applyLanguage();
+          if (!$("#appShell").hidden) render();
+        });
+      });
+
+      $("#openTripModal").addEventListener("click", () => openTripModal());
+      $("#closeTripModal").addEventListener("click", closeTripModal);
+      $("#cancelTripModal").addEventListener("click", closeTripModal);
+      $("#openGoogleMaps").addEventListener("click", openGoogleMapsSearch);
+      $("#tripModal").addEventListener("click", (event) => {
+        if (event.target.id === "tripModal") closeTripModal();
+      });
+
+      $("#tripImage").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          state.pendingImage = reader.result;
+          $("#imagePreview").src = state.pendingImage;
+        });
+        reader.readAsDataURL(file);
+      });
+
+      $("#tripForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const place = $("#tripPlace").value.trim();
+        if (!place) return;
+        const location = $("#tripLocation").value.trim() || place;
+
+        if (state.editingTripId) {
+          const trip = state.trips.find((entry) => entry.id === state.editingTripId);
+          if (trip) {
+            trip.place = place;
+            trip.location = location;
+            trip.from = $("#tripFrom").value;
+            trip.to = $("#tripTo").value;
+            trip.image = state.pendingImage || defaultTripImage;
+            state.activeTripId = trip.id;
+          }
+        } else {
+          const trip = {
+            id: uid(),
+            place,
+            location,
+            from: $("#tripFrom").value,
+            to: $("#tripTo").value,
+            image: state.pendingImage || defaultTripImage,
+            categories: [
+              { id: "clothing-" + uid(), de: "Kleidung", en: "Clothing", items: [] },
+              { id: "shopping-" + uid(), de: "Einkauf", en: "Shopping", items: [] },
+              { id: "medicine-" + uid(), de: "Medikamente", en: "Medicine", items: [] }
+            ]
+          };
+          state.trips.unshift(trip);
+          state.activeTripId = trip.id;
+          state.activeCategoryId = trip.categories[0].id;
+        }
+
+        closeTripModal();
+        render();
+      });
+
+      $("#categoryForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const input = $("#categoryInput");
+        const name = input.value.trim();
+        if (!name) return;
+        const category = { id: uid(), de: name, en: name, items: [] };
+        activeTrip().categories.push(category);
+        state.activeCategoryId = category.id;
+        input.value = "";
+        render();
+      });
+
+      $("#itemForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const text = $("#itemInput").value.trim();
+        if (!text) return;
+        activeCategory().items.push({
+          id: uid(),
+          text,
+          note: $("#noteInput").value.trim(),
+          done: false
+        });
+        event.target.reset();
+        render();
+      });
+
+      $("#clearDone").addEventListener("click", () => {
+        const category = activeCategory();
+        category.items = category.items.filter((item) => !item.done);
+        render();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !$("#tripModal").hidden) closeTripModal();
+      });
+
+      applyLanguage();
+      $("#imagePreview").src = defaultTripImage;
+      fetch("/api/session", { credentials: "same-origin" })
+        .then((response) => {
+          if (response.ok) showApp();
+        })
+        .catch(() => {});
+    </script>
+  </body>
+</html>

@@ -1,0 +1,226 @@
+const crypto = require("node:crypto");
+const fs = require("node:fs");
+const http = require("node:http");
+const path = require("node:path");
+
+const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || "0.0.0.0";
+const PUBLIC_DIR = path.join(__dirname, "public");
+const SESSION_COOKIE = "holidaycheck_session";
+const SESSION_TTL_MS = Number(process.env.SESSION_TTL_SECONDS || 86400) * 1000;
+
+const sessions = new Map();
+
+function parseUsers() {
+  const rawUsers = process.env.HOLIDAYCHECK_USERS;
+  const fallbackUser = process.env.HOLIDAYCHECK_USER;
+  const fallbackPassword = process.env.HOLIDAYCHECK_PASSWORD;
+  const users = new Map();
+
+  if (rawUsers) {
+    rawUsers
+      .split(/[\n,;]+/)
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .forEach((entry) => {
+        const separator = entry.indexOf(":");
+        if (separator <= 0) return;
+        const email = entry.slice(0, separator).trim().toLowerCase();
+        const password = entry.slice(separator + 1);
+        if (email && password) users.set(email, password);
+      });
+  }
+
+  if (fallbackUser && fallbackPassword) {
+    users.set(fallbackUser.trim().toLowerCase(), fallbackPassword);
+  }
+
+  if (!users.size) {
+    users.set("demo@holiday.test", "holiday");
+  }
+
+  return users;
+}
+
+const users = parseUsers();
+
+function sendJson(res, statusCode, payload, headers = {}) {
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+    ...headers
+  });
+  res.end(JSON.stringify(payload));
+}
+
+function readJson(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 1024 * 1024) {
+        reject(new Error("request body too large"));
+        req.destroy();
+      }
+    });
+    req.on("end", () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (error) {
+        reject(error);
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+function parseCookies(req) {
+  return Object.fromEntries(
+    (req.headers.cookie || "")
+      .split(";")
+      .map((cookie) => cookie.trim())
+      .filter(Boolean)
+      .map((cookie) => {
+        const separator = cookie.indexOf("=");
+        return separator === -1
+          ? [cookie, ""]
+          : [cookie.slice(0, separator), decodeURIComponent(cookie.slice(separator + 1))];
+      })
+  );
+}
+
+function createSession(email) {
+  const token = crypto.randomBytes(32).toString("hex");
+  sessions.set(token, {
+    email,
+    expiresAt: Date.now() + SESSION_TTL_MS
+  });
+  return token;
+}
+
+function getSession(req) {
+  const token = parseCookies(req)[SESSION_COOKIE];
+  if (!token) return null;
+  const session = sessions.get(token);
+  if (!session) return null;
+  if (session.expiresAt <= Date.now()) {
+    sessions.delete(token);
+    return null;
+  }
+  return { token, ...session };
+}
+
+function timingSafeEqualText(left, right) {
+  const leftBuffer = Buffer.from(String(left));
+  const rightBuffer = Buffer.from(String(right));
+  if (leftBuffer.length !== rightBuffer.length) return false;
+  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function contentTypeFor(filePath) {
+  const extension = path.extname(filePath).toLowerCase();
+  return {
+    ".html": "text/html; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".ico": "image/x-icon"
+  }[extension] || "application/octet-stream";
+}
+
+function serveStatic(req, res) {
+  const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = decodeURIComponent(requestUrl.pathname);
+  const safePath = path.normalize(pathname).replace(/^(\.\.[/\\])+/, "");
+  const filePath = path.join(PUBLIC_DIR, safePath === "/" ? "index.html" : safePath);
+
+  if (!filePath.startsWith(PUBLIC_DIR)) {
+    res.writeHead(403);
+    res.end("Forbidden");
+    return;
+  }
+
+  fs.stat(filePath, (statError, stat) => {
+    if (statError || !stat.isFile()) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+
+    res.writeHead(200, {
+      "Content-Type": contentTypeFor(filePath),
+      "Cache-Control": filePath.endsWith("index.html") ? "no-store" : "public, max-age=3600"
+    });
+    fs.createReadStream(filePath).pipe(res);
+  });
+}
+
+async function handleApi(req, res) {
+  if (req.method === "GET" && req.url === "/health") {
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  if (req.method === "GET" && req.url === "/api/session") {
+    const session = getSession(req);
+    sendJson(res, session ? 200 : 401, session ? { ok: true, email: session.email } : { ok: false });
+    return;
+  }
+
+  if (req.method === "POST" && req.url === "/api/login") {
+    try {
+      const payload = await readJson(req);
+      const email = String(payload.email || "").trim().toLowerCase();
+      const password = String(payload.password || "");
+      const expectedPassword = users.get(email);
+
+      if (!expectedPassword || !timingSafeEqualText(password, expectedPassword)) {
+        sendJson(res, 401, { ok: false });
+        return;
+      }
+
+      const token = createSession(email);
+      sendJson(res, 200, { ok: true }, {
+        "Set-Cookie": `${SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`
+      });
+    } catch (error) {
+      sendJson(res, 400, { ok: false });
+    }
+    return;
+  }
+
+  if (req.method === "POST" && req.url === "/api/logout") {
+    const session = getSession(req);
+    if (session) sessions.delete(session.token);
+    sendJson(res, 200, { ok: true }, {
+      "Set-Cookie": `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`
+    });
+    return;
+  }
+
+  sendJson(res, 404, { ok: false });
+}
+
+const server = http.createServer((req, res) => {
+  if (req.url === "/health" || req.url.startsWith("/api/")) {
+    handleApi(req, res);
+    return;
+  }
+
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    res.writeHead(405);
+    res.end("Method not allowed");
+    return;
+  }
+
+  serveStatic(req, res);
+});
+
+server.listen(PORT, HOST, () => {
+  console.log(`holidaycheck listening on ${HOST}:${PORT}`);
+});
