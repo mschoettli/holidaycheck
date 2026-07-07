@@ -221,7 +221,7 @@ async function handleApi(req, res) {
 
   if (req.method === "GET" && req.url === "/api/session") {
     const session = getSession(req);
-    sendJson(res, session ? 200 : 401, session ? { ok: true, username: session.username } : { ok: false });
+    sendJson(res, 200, session ? { ok: true, username: session.username } : { ok: false });
     return;
   }
 

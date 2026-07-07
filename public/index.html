@@ -1650,8 +1650,9 @@
       applyLanguage();
       $("#imagePreview").src = defaultTripImage;
       fetch("/api/session", { credentials: "same-origin" })
-        .then((response) => {
-          if (response.ok) showApp();
+        .then((response) => response.json())
+        .then((session) => {
+          if (session.ok) showApp();
         })
         .catch(() => {});
     </script>
