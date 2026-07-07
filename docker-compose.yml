@@ -11,4 +11,10 @@ services:
     environment:
       HOST: "0.0.0.0"
       PORT: "3000"
+      DATA_DIR: "/app/data"
+    volumes:
+      - holidaycheck_data:/app/data
     restart: unless-stopped
+
+volumes:
+  holidaycheck_data:

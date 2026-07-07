@@ -696,6 +696,17 @@
         text-align: center;
       }
 
+      .empty-dashboard {
+        margin-bottom: 24px;
+        padding: 30px;
+        border: 1px dashed var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--muted);
+        text-align: center;
+        box-shadow: var(--soft-shadow);
+      }
+
       .modal-backdrop {
         position: fixed;
         inset: 0;
@@ -915,11 +926,11 @@
           </div>
           <div class="field">
             <label for="username" data-i18n="usernameLabel">Username</label>
-            <input id="username" type="text" value="demo" autocomplete="username" />
+            <input id="username" type="text" autocomplete="username" />
           </div>
           <div class="field">
             <label for="password" data-i18n="passwordLabel">Password</label>
-            <input id="password" type="password" value="holiday" autocomplete="current-password" />
+            <input id="password" type="password" autocomplete="current-password" />
           </div>
           <button class="primary-button" type="submit" data-i18n="loginButton">Sign in</button>
           <p class="login-error" id="loginError" role="alert" hidden></p>
@@ -937,8 +948,8 @@
             <div class="preview-image"></div>
             <div class="preview-summary">
               <div>
-                <strong>Mallorca</strong>
-                <div>5 offen / 2 erledigt</div>
+                <strong>holidaycheck</strong>
+                <div data-i18n="loginPreviewText">Your trips start empty and save automatically.</div>
               </div>
               <div class="status-pill">29%</div>
             </div>
@@ -961,7 +972,7 @@
             <button type="button" class="active" data-lang="de">DE</button>
             <button type="button" data-lang="en">EN</button>
           </div>
-          <button class="text-button" type="button" id="resetDemo" data-i18n="resetButton">Reset demo</button>
+          <button class="text-button" type="button" id="logoutButton" data-i18n="logoutButton">Logout</button>
         </div>
       </header>
 
@@ -976,14 +987,18 @@
 
         <section class="trip-grid" id="tripGrid" aria-label="Trips"></section>
 
-        <section class="detail-panel" aria-label="Checklist detail">
+        <section class="empty-dashboard" id="emptyDashboard" hidden>
+          <p data-i18n="emptyDashboard">No trips yet. Add your first destination to start your checklist.</p>
+        </section>
+
+        <section class="detail-panel" id="detailPanel" aria-label="Checklist detail">
           <header class="trip-header">
             <img id="activeTripImage" alt="" />
             <div class="trip-header-content">
-              <h3 id="activeTripName">Mallorca</h3>
+              <h3 id="activeTripName">Destination</h3>
               <div class="trip-meta">
-                <span id="activeTripDates">12.08.2026 - 24.08.2026</span>
-                <span id="activeTripPlace">Palma, Spain</span>
+                <span id="activeTripDates"></span>
+                <span id="activeTripPlace"></span>
               </div>
             </div>
             <div class="status-pill" id="tripStatus">0 / 0</div>
@@ -1035,7 +1050,7 @@
         <div class="modal-body">
           <label class="modal-field">
             <span data-i18n="placeLabel">Destination</span>
-            <input id="tripPlace" type="text" placeholder="Mallorca" />
+            <input id="tripPlace" type="text" placeholder="Destination" />
           </label>
           <label class="modal-field">
             <span data-i18n="locationLabel">Location details</span>
@@ -1080,10 +1095,12 @@
           usernameLabel: "Benutzername",
           passwordLabel: "Passwort",
           loginButton: "Einloggen",
+          loginPreviewText: "Deine Reisen starten leer und speichern automatisch.",
           loginError: "Login fehlgeschlagen. Prüfe Benutzername und Passwort.",
-          resetButton: "Demo zurücksetzen",
+          logoutButton: "Abmelden",
           dashboardTitle: "Ferienorte",
           dashboardText: "Wähle einen Ferienort und behalte offene Punkte oben.",
+          emptyDashboard: "Noch keine Reisen vorhanden. Füge deinen ersten Ferienort hinzu, um die Checkliste zu starten.",
           quickTrip: "Reise hinzufügen",
           tripModalTitle: "Reise hinzufügen",
           editTripModalTitle: "Reise bearbeiten",
@@ -1118,10 +1135,12 @@
           usernameLabel: "Username",
           passwordLabel: "Password",
           loginButton: "Sign in",
+          loginPreviewText: "Your trips start empty and save automatically.",
           loginError: "Login failed. Check username and password.",
-          resetButton: "Reset demo",
+          logoutButton: "Logout",
           dashboardTitle: "Trips",
           dashboardText: "Choose a destination and keep unfinished items at the top.",
+          emptyDashboard: "No trips yet. Add your first destination to start your checklist.",
           quickTrip: "Add trip",
           tripModalTitle: "Add trip",
           editTripModalTitle: "Edit trip",
@@ -1171,113 +1190,20 @@
 
       const defaultTripImage = svgImage("Holiday", "#8bd4df", "#f6cf8f", "#087f8c");
 
-      const seedTrips = [
-        {
-          id: "mallorca",
-          place: "Mallorca",
-          location: "Palma, Spain",
-          from: "2026-08-12",
-          to: "2026-08-24",
-          image: svgImage("Mallorca", "#76c7d4", "#f2bf76", "#087f8c"),
-          categories: [
-            {
-              id: "clothing",
-              de: "Kleidung",
-              en: "Clothing",
-              items: [
-                { id: "shirts", de: "T-Shirts", en: "T-shirts", noteDe: "7 Stück", noteEn: "7 pieces", done: false },
-                { id: "swimwear", de: "Badebekleidung", en: "Swimwear", noteDe: "Strandtasche", noteEn: "Beach bag", done: false },
-                { id: "jacket", de: "Leichte Jacke", en: "Light jacket", noteDe: "Abend", noteEn: "Evening", done: true }
-              ]
-            },
-            {
-              id: "medicine",
-              de: "Medikamente",
-              en: "Medicine",
-              items: [
-                { id: "painkillers", de: "Schmerzmittel", en: "Painkillers", noteDe: "", noteEn: "", done: false },
-                { id: "prescription", de: "Rezeptpflichtige Medikamente", en: "Prescription medicine", noteDe: "Originalverpackung", noteEn: "Original package", done: false }
-              ]
-            },
-            {
-              id: "shopping",
-              de: "Einkauf",
-              en: "Shopping",
-              items: [
-                { id: "suncream", de: "Sonnencreme SPF 50", en: "Sunscreen SPF 50", noteDe: "", noteEn: "", done: false },
-                { id: "snacks", de: "Reise-Snacks", en: "Travel snacks", noteDe: "Kinder", noteEn: "Kids", done: true }
-              ]
-            }
-          ]
-        },
-        {
-          id: "zermatt",
-          place: "Zermatt",
-          location: "Valais, Switzerland",
-          from: "2026-12-20",
-          to: "2026-12-27",
-          image: svgImage("Zermatt", "#6d90ad", "#f4f7f8", "#12323a"),
-          categories: [
-            {
-              id: "clothing",
-              de: "Kleidung",
-              en: "Clothing",
-              items: [
-                { id: "thermals", de: "Thermounterwäsche", en: "Thermal underwear", noteDe: "", noteEn: "", done: false },
-                { id: "gloves", de: "Handschuhe", en: "Gloves", noteDe: "Wasserdicht", noteEn: "Waterproof", done: false }
-              ]
-            },
-            {
-              id: "documents",
-              de: "Dokumente",
-              en: "Documents",
-              items: [
-                { id: "booking", de: "Hotelbuchung", en: "Hotel booking", noteDe: "PDF offline", noteEn: "PDF offline", done: true },
-                { id: "ski-pass", de: "Skipass", en: "Ski pass", noteDe: "", noteEn: "", done: false }
-              ]
-            }
-          ]
-        },
-        {
-          id: "lisbon",
-          place: "Lisbon",
-          location: "Portugal",
-          from: "2026-10-03",
-          to: "2026-10-10",
-          image: svgImage("Lisbon", "#72a9b3", "#e8b76b", "#bf6b30"),
-          categories: [
-            {
-              id: "documents",
-              de: "Dokumente",
-              en: "Documents",
-              items: [
-                { id: "passport", de: "Pass oder ID", en: "Passport or ID", noteDe: "", noteEn: "", done: false },
-                { id: "tickets", de: "Flugtickets", en: "Flight tickets", noteDe: "Offline speichern", noteEn: "Save offline", done: true }
-              ]
-            },
-            {
-              id: "shopping",
-              de: "Einkauf",
-              en: "Shopping",
-              items: [
-                { id: "adapter", de: "Ladeadapter", en: "Charging adapter", noteDe: "", noteEn: "", done: false }
-              ]
-            }
-          ]
-        }
-      ];
-
       let state = {
         language: "de",
-        activeTripId: "mallorca",
-        activeCategoryId: "clothing",
-        trips: structuredClone(seedTrips),
+        activeTripId: null,
+        activeCategoryId: null,
+        trips: [],
         pendingImage: defaultTripImage,
-        editingTripId: null
+        editingTripId: null,
+        isLoaded: false,
+        isSaving: false
       };
 
       const $ = (selector) => document.querySelector(selector);
       const uid = () => Math.random().toString(36).slice(2, 10);
+      let saveTimer = null;
 
       function escapeHtml(value) {
         return String(value)
@@ -1293,12 +1219,13 @@
       }
 
       function activeTrip() {
-        return state.trips.find((trip) => trip.id === state.activeTripId) || state.trips[0];
+        return state.trips.find((trip) => trip.id === state.activeTripId) || state.trips[0] || null;
       }
 
       function activeCategory() {
         const trip = activeTrip();
-        return trip.categories.find((category) => category.id === state.activeCategoryId) || trip.categories[0];
+        if (!trip) return null;
+        return trip.categories.find((category) => category.id === state.activeCategoryId) || trip.categories[0] || null;
       }
 
       function formatDate(value) {
@@ -1384,7 +1311,7 @@
           card.addEventListener("click", () => {
             state.activeTripId = trip.id;
             state.activeCategoryId = trip.categories[0]?.id;
-            render();
+            persistAndRender();
           });
 
           const menuButton = document.createElement("button");
@@ -1402,6 +1329,7 @@
 
       function renderHeader() {
         const trip = activeTrip();
+        if (!trip) return;
         const stats = tripStats(trip);
         const progress = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
         $("#activeTripImage").src = trip.image || defaultTripImage;
@@ -1415,6 +1343,7 @@
         const list = $("#categoryList");
         const trip = activeTrip();
         list.innerHTML = "";
+        if (!trip) return;
 
         trip.categories.forEach((category) => {
           const open = category.items.filter((item) => !item.done).length;
@@ -1425,7 +1354,7 @@
           button.innerHTML = `<span>${escapeHtml(categoryName(category))}</span><span class="category-count">${open}</span>`;
           button.addEventListener("click", () => {
             state.activeCategoryId = category.id;
-            render();
+            persistAndRender();
           });
           list.append(button);
         });
@@ -1434,6 +1363,13 @@
       function renderItems() {
         const category = activeCategory();
         const list = $("#checklist");
+        if (!category) {
+          $("#categoryTitle").textContent = "";
+          $("#categoryHint").textContent = "";
+          list.innerHTML = "";
+          return;
+        }
+
         $("#categoryTitle").textContent = categoryName(category);
         $("#categoryHint").textContent = t("categoryHint");
         list.innerHTML = "";
@@ -1463,11 +1399,11 @@
           `;
           li.querySelector("input").addEventListener("change", (event) => {
             item.done = event.target.checked;
-            render();
+            persistAndRender();
           });
           li.querySelector("button").addEventListener("click", () => {
             category.items = category.items.filter((entry) => entry.id !== item.id);
-            render();
+            persistAndRender();
           });
           list.append(li);
         });
@@ -1476,15 +1412,58 @@
       function render() {
         applyLanguage();
         renderTrips();
+        const hasTrips = state.trips.length > 0;
+        $("#emptyDashboard").hidden = hasTrips;
+        $("#detailPanel").hidden = !hasTrips;
+        if (!hasTrips) return;
         renderHeader();
         renderCategories();
         renderItems();
       }
 
-      function showApp() {
+      async function loadUserData() {
+        const response = await fetch("/api/data", { credentials: "same-origin" });
+        if (!response.ok) throw new Error("data load failed");
+        const payload = await response.json();
+        const data = payload.data || {};
+        state.trips = Array.isArray(data.trips) ? data.trips : [];
+        state.activeTripId = data.activeTripId || state.trips[0]?.id || null;
+        state.activeCategoryId = data.activeCategoryId || activeTrip()?.categories?.[0]?.id || null;
+        state.isLoaded = true;
+      }
+
+      function saveUserData() {
+        if (!state.isLoaded) return;
+        window.clearTimeout(saveTimer);
+        saveTimer = window.setTimeout(async () => {
+          state.isSaving = true;
+          try {
+            await fetch("/api/data", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              credentials: "same-origin",
+              body: JSON.stringify({
+                trips: state.trips,
+                activeTripId: state.activeTripId,
+                activeCategoryId: state.activeCategoryId
+              })
+            });
+          } finally {
+            state.isSaving = false;
+          }
+        }, 250);
+      }
+
+      function persistAndRender() {
+        render();
+        saveUserData();
+      }
+
+      async function showApp() {
         $("#loginScreen").hidden = true;
         $("#appShell").hidden = false;
         $("#loginError").hidden = true;
+        await loadUserData();
         render();
       }
 
@@ -1548,11 +1527,12 @@
         }
       });
 
-      $("#resetDemo").addEventListener("click", () => {
-        state.trips = structuredClone(seedTrips);
-        state.activeTripId = "mallorca";
-        state.activeCategoryId = "clothing";
-        render();
+      $("#logoutButton").addEventListener("click", async () => {
+        await fetch("/api/logout", {
+          method: "POST",
+          credentials: "same-origin"
+        });
+        window.location.reload();
       });
 
       document.querySelectorAll("[data-lang]").forEach((button) => {
@@ -1618,39 +1598,44 @@
         }
 
         closeTripModal();
-        render();
+        persistAndRender();
       });
 
       $("#categoryForm").addEventListener("submit", (event) => {
         event.preventDefault();
         const input = $("#categoryInput");
         const name = input.value.trim();
+        const trip = activeTrip();
+        if (!trip) return;
         if (!name) return;
         const category = { id: uid(), de: name, en: name, items: [] };
-        activeTrip().categories.push(category);
+        trip.categories.push(category);
         state.activeCategoryId = category.id;
         input.value = "";
-        render();
+        persistAndRender();
       });
 
       $("#itemForm").addEventListener("submit", (event) => {
         event.preventDefault();
         const text = $("#itemInput").value.trim();
+        const category = activeCategory();
+        if (!category) return;
         if (!text) return;
-        activeCategory().items.push({
+        category.items.push({
           id: uid(),
           text,
           note: $("#noteInput").value.trim(),
           done: false
         });
         event.target.reset();
-        render();
+        persistAndRender();
       });
 
       $("#clearDone").addEventListener("click", () => {
         const category = activeCategory();
+        if (!category) return;
         category.items = category.items.filter((item) => !item.done);
-        render();
+        persistAndRender();
       });
 
       document.addEventListener("keydown", (event) => {

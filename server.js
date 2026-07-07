@@ -6,6 +6,7 @@ const path = require("node:path");
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 const PUBLIC_DIR = path.join(__dirname, "public");
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const SESSION_COOKIE = "holidaycheck_session";
 const SESSION_TTL_MS = Number(process.env.SESSION_TTL_SECONDS || 86400) * 1000;
 
@@ -57,7 +58,7 @@ function readJson(req) {
     let body = "";
     req.on("data", (chunk) => {
       body += chunk;
-      if (body.length > 1024 * 1024) {
+      if (body.length > 15 * 1024 * 1024) {
         reject(new Error("request body too large"));
         req.destroy();
       }
@@ -71,6 +72,50 @@ function readJson(req) {
     });
     req.on("error", reject);
   });
+}
+
+function defaultUserData() {
+  return {
+    trips: [],
+    activeTripId: null,
+    activeCategoryId: null
+  };
+}
+
+function dataFileForUsername(username) {
+  const digest = crypto.createHash("sha256").update(username).digest("hex");
+  return path.join(DATA_DIR, `${digest}.json`);
+}
+
+async function readUserData(username) {
+  try {
+    const fileContent = await fs.promises.readFile(dataFileForUsername(username), "utf8");
+    const parsed = JSON.parse(fileContent);
+    return {
+      ...defaultUserData(),
+      ...parsed,
+      trips: Array.isArray(parsed.trips) ? parsed.trips : []
+    };
+  } catch (error) {
+    if (error.code === "ENOENT") return defaultUserData();
+    throw error;
+  }
+}
+
+async function writeUserData(username, payload) {
+  const data = {
+    trips: Array.isArray(payload.trips) ? payload.trips : [],
+    activeTripId: payload.activeTripId || null,
+    activeCategoryId: payload.activeCategoryId || null,
+    updatedAt: new Date().toISOString()
+  };
+  const filePath = dataFileForUsername(username);
+  const temporaryPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+
+  await fs.promises.mkdir(DATA_DIR, { recursive: true });
+  await fs.promises.writeFile(temporaryPath, JSON.stringify(data, null, 2));
+  await fs.promises.rename(temporaryPath, filePath);
+  return data;
 }
 
 function parseCookies(req) {
@@ -168,6 +213,37 @@ async function handleApi(req, res) {
   if (req.method === "GET" && req.url === "/api/session") {
     const session = getSession(req);
     sendJson(res, session ? 200 : 401, session ? { ok: true, username: session.username } : { ok: false });
+    return;
+  }
+
+  if (req.method === "GET" && req.url === "/api/data") {
+    const session = getSession(req);
+    if (!session) {
+      sendJson(res, 401, { ok: false });
+      return;
+    }
+
+    try {
+      sendJson(res, 200, { ok: true, data: await readUserData(session.username) });
+    } catch (error) {
+      sendJson(res, 500, { ok: false });
+    }
+    return;
+  }
+
+  if (req.method === "PUT" && req.url === "/api/data") {
+    const session = getSession(req);
+    if (!session) {
+      sendJson(res, 401, { ok: false });
+      return;
+    }
+
+    try {
+      const payload = await readJson(req);
+      sendJson(res, 200, { ok: true, data: await writeUserData(session.username, payload) });
+    } catch (error) {
+      sendJson(res, 400, { ok: false });
+    }
     return;
   }
 

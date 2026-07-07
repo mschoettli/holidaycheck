@@ -2,6 +2,7 @@
 .github
 node_modules
 npm-debug.log
+data
 docker-compose.yml
 .DS_Store
 README.md
