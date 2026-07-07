@@ -42,6 +42,7 @@ Create a separate `.env` file for the stack. User 1 is required:
 ```env
 HOLIDAYCHECK_PORT=3000
 SESSION_TTL_SECONDS=86400
+HOLIDAYCHECK_LANGUAGE=de
 TZ=Europe/Zurich
 WATCHTOWER_SCHEDULE=0 0 4 * * *
 
@@ -67,6 +68,16 @@ HOLIDAYCHECK_USER_2_PASSWORD=
 The app reads `HOLIDAYCHECK_USER_1_NAME` / `HOLIDAYCHECK_USER_1_PASSWORD` through `HOLIDAYCHECK_USER_5_NAME` / `HOLIDAYCHECK_USER_5_PASSWORD`. User 1 is required. For production, replace the demo passwords before starting the container. Do not commit your real `.env`.
 
 Legacy `HOLIDAYCHECK_USER_1_EMAIL` style variables are still accepted as usernames so older Dockge stacks do not crash, but the clean setup should use `NAME`.
+
+## Language
+
+Set the app language in the separate `.env` file:
+
+```env
+HOLIDAYCHECK_LANGUAGE=de
+```
+
+Allowed values are `de` and `en`. The language switch is intentionally not shown in the UI.
 
 ## Watchtower
 

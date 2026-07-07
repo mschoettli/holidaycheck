@@ -17,6 +17,7 @@ services:
       HOST: "0.0.0.0"
       PORT: "3000"
       DATA_DIR: "/app/data"
+      HOLIDAYCHECK_LANGUAGE: "${HOLIDAYCHECK_LANGUAGE:-de}"
     labels:
       com.centurylinklabs.watchtower.enable: "true"
     volumes:

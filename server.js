@@ -9,6 +9,9 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const SESSION_COOKIE = "holidaycheck_session";
 const SESSION_TTL_MS = Number(process.env.SESSION_TTL_SECONDS || 86400) * 1000;
+const APP_LANGUAGE = ["de", "en"].includes(String(process.env.HOLIDAYCHECK_LANGUAGE || "").toLowerCase())
+  ? String(process.env.HOLIDAYCHECK_LANGUAGE).toLowerCase()
+  : "de";
 
 const sessions = new Map();
 
@@ -216,6 +219,11 @@ function serveStatic(req, res) {
 async function handleApi(req, res) {
   if (req.method === "GET" && req.url === "/health") {
     sendJson(res, 200, { ok: true, usersConfigured: hasConfiguredUsers });
+    return;
+  }
+
+  if (req.method === "GET" && req.url === "/api/config") {
+    sendJson(res, 200, { ok: true, language: APP_LANGUAGE });
     return;
   }
 
