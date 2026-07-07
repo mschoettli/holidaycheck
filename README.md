@@ -13,9 +13,23 @@ docker compose up --build
 
 Open `http://localhost:3000`.
 
+## Dockge
+
+Use this repository URL in Dockge:
+
+```text
+https://github.com/mschoettli/holidaycheck.git
+```
+
+The stack starts without a separate `.env` file because `docker-compose.yml` contains safe demo defaults. Change users in Dockge by setting this stack environment variable:
+
+```env
+HOLIDAYCHECK_USERS=demo@holiday.test:holiday,admin@example.com:change-me
+```
+
 ## Users
 
-Users are configured in `.env`:
+Users are configured through `HOLIDAYCHECK_USERS`, either in `.env`, in Dockge's environment editor, or directly in `docker-compose.yml`:
 
 ```env
 HOLIDAYCHECK_USERS=demo@holiday.test:holiday,admin@example.com:change-me

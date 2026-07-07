@@ -4,12 +4,9 @@ services:
     container_name: holidaycheck
     ports:
       - "${HOLIDAYCHECK_PORT:-3000}:3000"
-    env_file:
-      - path: .env
-        required: false
     environment:
       HOST: "0.0.0.0"
       PORT: "3000"
       SESSION_TTL_SECONDS: "${SESSION_TTL_SECONDS:-86400}"
-      HOLIDAYCHECK_USERS: "${HOLIDAYCHECK_USERS:-demo@holiday.test:holiday}"
+      HOLIDAYCHECK_USERS: "${HOLIDAYCHECK_USERS:-demo@holiday.test:holiday,admin@example.com:change-me}"
     restart: unless-stopped
