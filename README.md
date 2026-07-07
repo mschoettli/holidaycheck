@@ -64,6 +64,19 @@ HOLIDAYCHECK_USER_2_PASSWORD=
 
 The app reads `HOLIDAYCHECK_USER_1_NAME` / `HOLIDAYCHECK_USER_1_PASSWORD` through `HOLIDAYCHECK_USER_5_NAME` / `HOLIDAYCHECK_USER_5_PASSWORD`. User 1 is required. For production, replace the demo passwords before starting the container. Do not commit your real `.env`.
 
+Legacy `HOLIDAYCHECK_USER_1_EMAIL` style variables are still accepted as usernames so older Dockge stacks do not crash, but the clean setup should use `NAME`.
+
+## Dockge Troubleshooting
+
+If Dockge logs still say `Set HOLIDAYCHECK_USER_1_EMAIL`, the running image is old. Pull the latest repository state in Dockge and force a rebuild of the stack. If it still repeats, remove the old `holidaycheck` container/image in Dockge and deploy again so the GitHub build context is fetched fresh.
+
+Make sure the separate `.env` file belongs to the Dockge stack and contains at least:
+
+```env
+HOLIDAYCHECK_USER_1_NAME=admin
+HOLIDAYCHECK_USER_1_PASSWORD=change-this-password
+```
+
 ## Local Run Without Docker
 
 ```bash

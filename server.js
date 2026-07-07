@@ -14,28 +14,31 @@ const sessions = new Map();
 
 function parseUsers() {
   const users = new Map();
+  const userNumbers = Array.from(
+    new Set(
+      Object.keys(process.env)
+        .map((key) => key.match(/^HOLIDAYCHECK_USER_(\d+)_(?:NAME|EMAIL)$/)?.[1])
+        .filter(Boolean)
+    )
+  ).sort((left, right) => Number(left) - Number(right));
 
-  Object.keys(process.env)
-    .filter((key) => /^HOLIDAYCHECK_USER_\d+_NAME$/.test(key))
-    .sort((left, right) => {
-      const leftNumber = Number(left.match(/\d+/)[0]);
-      const rightNumber = Number(right.match(/\d+/)[0]);
-      return leftNumber - rightNumber;
-    })
-    .forEach((nameKey) => {
-      const userNumber = nameKey.match(/\d+/)[0];
-      const passwordKey = `HOLIDAYCHECK_USER_${userNumber}_PASSWORD`;
-      const username = String(process.env[nameKey] || "").trim().toLowerCase();
-      const password = String(process.env[passwordKey] || "");
+  userNumbers.forEach((userNumber) => {
+    const nameKey = `HOLIDAYCHECK_USER_${userNumber}_NAME`;
+    const legacyEmailKey = `HOLIDAYCHECK_USER_${userNumber}_EMAIL`;
+    const passwordKey = `HOLIDAYCHECK_USER_${userNumber}_PASSWORD`;
+    const username = String(process.env[nameKey] || process.env[legacyEmailKey] || "")
+      .trim()
+      .toLowerCase();
+    const password = String(process.env[passwordKey] || "");
 
-      if (username && password) {
-        users.set(username, password);
-      }
-    });
+    if (username && password) {
+      users.set(username, password);
+    }
+  });
 
   if (!users.size) {
     throw new Error(
-      "No holidaycheck users configured. Set HOLIDAYCHECK_USER_1_NAME and HOLIDAYCHECK_USER_1_PASSWORD in the environment."
+      "No holidaycheck users configured. Set HOLIDAYCHECK_USER_1_NAME and HOLIDAYCHECK_USER_1_PASSWORD in your separate .env file. Legacy HOLIDAYCHECK_USER_1_EMAIL is also accepted as a username."
     );
   }
 
@@ -43,6 +46,7 @@ function parseUsers() {
 }
 
 const users = parseUsers();
+console.log(`holidaycheck configured ${users.size} user${users.size === 1 ? "" : "s"}`);
 
 function sendJson(res, statusCode, payload, headers = {}) {
   res.writeHead(statusCode, {
