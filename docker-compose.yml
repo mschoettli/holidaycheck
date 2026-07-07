@@ -1,6 +1,8 @@
 services:
   holidaycheck:
-    build: .
+    build:
+      context: https://github.com/mschoettli/holidaycheck.git#main
+      dockerfile: Dockerfile
     container_name: holidaycheck
     ports:
       - "${HOLIDAYCHECK_PORT:-3000}:3000"

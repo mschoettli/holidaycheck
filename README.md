@@ -21,6 +21,14 @@ Use this repository URL in Dockge:
 https://github.com/mschoettli/holidaycheck.git
 ```
 
+The compose file builds directly from GitHub:
+
+```yaml
+build:
+  context: https://github.com/mschoettli/holidaycheck.git#main
+  dockerfile: Dockerfile
+```
+
 Create a separate `.env` file for the stack. User 1 is required:
 
 ```env
