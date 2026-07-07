@@ -12,31 +12,30 @@ const SESSION_TTL_MS = Number(process.env.SESSION_TTL_SECONDS || 86400) * 1000;
 const sessions = new Map();
 
 function parseUsers() {
-  const rawUsers = process.env.HOLIDAYCHECK_USERS;
-  const fallbackUser = process.env.HOLIDAYCHECK_USER;
-  const fallbackPassword = process.env.HOLIDAYCHECK_PASSWORD;
   const users = new Map();
 
-  if (rawUsers) {
-    rawUsers
-      .split(/[\n,;]+/)
-      .map((entry) => entry.trim())
-      .filter(Boolean)
-      .forEach((entry) => {
-        const separator = entry.indexOf(":");
-        if (separator <= 0) return;
-        const email = entry.slice(0, separator).trim().toLowerCase();
-        const password = entry.slice(separator + 1);
-        if (email && password) users.set(email, password);
-      });
-  }
+  Object.keys(process.env)
+    .filter((key) => /^HOLIDAYCHECK_USER_\d+_EMAIL$/.test(key))
+    .sort((left, right) => {
+      const leftNumber = Number(left.match(/\d+/)[0]);
+      const rightNumber = Number(right.match(/\d+/)[0]);
+      return leftNumber - rightNumber;
+    })
+    .forEach((emailKey) => {
+      const userNumber = emailKey.match(/\d+/)[0];
+      const passwordKey = `HOLIDAYCHECK_USER_${userNumber}_PASSWORD`;
+      const email = String(process.env[emailKey] || "").trim().toLowerCase();
+      const password = String(process.env[passwordKey] || "");
 
-  if (fallbackUser && fallbackPassword) {
-    users.set(fallbackUser.trim().toLowerCase(), fallbackPassword);
-  }
+      if (email && password) {
+        users.set(email, password);
+      }
+    });
 
   if (!users.size) {
-    users.set("demo@holiday.test", "holiday");
+    throw new Error(
+      "No holidaycheck users configured. Set HOLIDAYCHECK_USER_1_EMAIL and HOLIDAYCHECK_USER_1_PASSWORD in the environment."
+    );
   }
 
   return users;

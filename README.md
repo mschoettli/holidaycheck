@@ -21,28 +21,34 @@ Use this repository URL in Dockge:
 https://github.com/mschoettli/holidaycheck.git
 ```
 
-The stack starts without a separate `.env` file because `docker-compose.yml` contains safe demo defaults. Change users in Dockge by setting this stack environment variable:
+Set users in Dockge's stack environment. User 1 is required:
 
 ```env
-HOLIDAYCHECK_USERS=demo@holiday.test:holiday,admin@example.com:change-me
+HOLIDAYCHECK_USER_1_EMAIL=demo@holiday.test
+HOLIDAYCHECK_USER_1_PASSWORD=holiday
+
+HOLIDAYCHECK_USER_2_EMAIL=admin@example.com
+HOLIDAYCHECK_USER_2_PASSWORD=change-me
 ```
 
 ## Users
 
-Users are configured through `HOLIDAYCHECK_USERS`, either in `.env`, in Dockge's environment editor, or directly in `docker-compose.yml`:
+Users are configured only through environment variables. Use `.env` locally or Dockge's environment editor on your server:
 
 ```env
-HOLIDAYCHECK_USERS=demo@holiday.test:holiday,admin@example.com:change-me
+HOLIDAYCHECK_USER_1_EMAIL=demo@holiday.test
+HOLIDAYCHECK_USER_1_PASSWORD=holiday
+
+HOLIDAYCHECK_USER_2_EMAIL=admin@example.com
+HOLIDAYCHECK_USER_2_PASSWORD=change-me
 ```
 
-Format: `email:password,email2:password2`.
-
-For production, replace the demo passwords before starting the container.
+The app reads `HOLIDAYCHECK_USER_1_EMAIL` / `HOLIDAYCHECK_USER_1_PASSWORD` through `HOLIDAYCHECK_USER_5_EMAIL` / `HOLIDAYCHECK_USER_5_PASSWORD`. User 1 is required. For production, replace the demo passwords before starting the container.
 
 ## Local Run Without Docker
 
 ```bash
-HOST=127.0.0.1 HOLIDAYCHECK_USERS="demo@holiday.test:holiday" npm start
+HOST=127.0.0.1 HOLIDAYCHECK_USER_1_EMAIL="demo@holiday.test" HOLIDAYCHECK_USER_1_PASSWORD="holiday" npm start
 ```
 
 The app listens on port `3000` by default.
