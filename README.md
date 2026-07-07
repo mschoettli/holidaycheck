@@ -48,8 +48,8 @@ WATCHTOWER_SCHEDULE=0 0 4 * * *
 WATCHTOWER_HTTP_API_TOKEN=holidaycheck-update-token
 DOCKER_API_VERSION=1.44
 
-HOLIDAYCHECK_USER_1_NAME=admin
-HOLIDAYCHECK_USER_1_PASSWORD=change-this-password
+HOLIDAYCHECK_USER_1_NAME=Admin
+HOLIDAYCHECK_USER_1_PASSWORD=Change-this-password!2026
 
 HOLIDAYCHECK_USER_2_NAME=
 HOLIDAYCHECK_USER_2_PASSWORD=
@@ -60,14 +60,14 @@ HOLIDAYCHECK_USER_2_PASSWORD=
 Users are configured only through the separate `.env` file referenced by `env_file` in `docker-compose.yml`:
 
 ```env
-HOLIDAYCHECK_USER_1_NAME=admin
-HOLIDAYCHECK_USER_1_PASSWORD=change-this-password
+HOLIDAYCHECK_USER_1_NAME=Admin
+HOLIDAYCHECK_USER_1_PASSWORD=Change-this-password!2026
 
 HOLIDAYCHECK_USER_2_NAME=
 HOLIDAYCHECK_USER_2_PASSWORD=
 ```
 
-The app reads `HOLIDAYCHECK_USER_1_NAME` / `HOLIDAYCHECK_USER_1_PASSWORD` through `HOLIDAYCHECK_USER_5_NAME` / `HOLIDAYCHECK_USER_5_PASSWORD`. User 1 is required. For production, replace the demo passwords before starting the container. Do not commit your real `.env`.
+The app reads `HOLIDAYCHECK_USER_1_NAME` / `HOLIDAYCHECK_USER_1_PASSWORD` through `HOLIDAYCHECK_USER_5_NAME` / `HOLIDAYCHECK_USER_5_PASSWORD`. User 1 is required. Usernames and passwords are exact and may contain uppercase, lowercase, numbers, and special characters. For production, replace the demo passwords before starting the container. Do not commit your real `.env`.
 
 Legacy `HOLIDAYCHECK_USER_1_EMAIL` style variables are still accepted as usernames so older Dockge stacks do not crash, but the clean setup should use `NAME`.
 
@@ -106,14 +106,14 @@ The current app no longer exits when the user env is missing. It keeps running a
 Make sure the separate `.env` file belongs to the Dockge stack and contains at least:
 
 ```env
-HOLIDAYCHECK_USER_1_NAME=admin
-HOLIDAYCHECK_USER_1_PASSWORD=change-this-password
+HOLIDAYCHECK_USER_1_NAME=Admin
+HOLIDAYCHECK_USER_1_PASSWORD=Change-this-password!2026
 ```
 
 ## Local Run Without Docker
 
 ```bash
-HOST=127.0.0.1 HOLIDAYCHECK_USER_1_NAME="admin" HOLIDAYCHECK_USER_1_PASSWORD="change-this-password" npm start
+HOST=127.0.0.1 HOLIDAYCHECK_USER_1_NAME="Admin" HOLIDAYCHECK_USER_1_PASSWORD="Change-this-password!2026" npm start
 ```
 
 The app listens on port `3000` by default.

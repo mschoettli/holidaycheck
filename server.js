@@ -33,9 +33,7 @@ function parseUsers() {
     const nameKey = `HOLIDAYCHECK_USER_${userNumber}_NAME`;
     const legacyEmailKey = `HOLIDAYCHECK_USER_${userNumber}_EMAIL`;
     const passwordKey = `HOLIDAYCHECK_USER_${userNumber}_PASSWORD`;
-    const username = String(process.env[nameKey] || process.env[legacyEmailKey] || "")
-      .trim()
-      .toLowerCase();
+    const username = String(process.env[nameKey] || process.env[legacyEmailKey] || "").trim();
     const password = String(process.env[passwordKey] || "");
 
     if (username && password) {
@@ -377,7 +375,7 @@ async function handleApi(req, res) {
       }
 
       const payload = await readJson(req);
-      const username = String(payload.username || "").trim().toLowerCase();
+      const username = String(payload.username || "").trim();
       const password = String(payload.password || "");
       const expectedPassword = users.get(username);
 
